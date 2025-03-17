@@ -1,0 +1,3 @@
+03.17:
+A dropout layerek hozzáadásával a validation loss normalizálódott, követi a train loss ívét kb, a pontosság pedig kb 10% javult
+Mobilenet V2 eleg durva kiugras van a validation lossban, es az accuracy se olyan kiemelkedo

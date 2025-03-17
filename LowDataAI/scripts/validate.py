@@ -11,7 +11,7 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 _, test_ds = load_cifar10()
 
 # Load trained model
-model_path = "models/saved_models/trained_model.h5"
+model_path = "../models/saved_models/trained_model.h5"
 model = tf.keras.models.load_model(model_path)
 print(f"Loaded model from {model_path}")
 
