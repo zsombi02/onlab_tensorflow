@@ -5,7 +5,7 @@ import os
 import datetime
 
 
-def train_model(model, train_ds, val_ds, epochs=10):
+def train_model(model, train_ds, val_ds, epochs=10, callbacks=None):
     """
     Trains the model with given datasets.
 
@@ -14,11 +14,12 @@ def train_model(model, train_ds, val_ds, epochs=10):
         train_ds (tf.data.Dataset): Training dataset.
         val_ds (tf.data.Dataset): Validation dataset.
         epochs (int): Number of training epochs.
+        callbacks (list): List of Keras callbacks to use during training.
 
     Returns:
         history: The training history object.
     """
-    history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+    history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[callbacks] if callbacks else [])
     return history
 
 def plot_training_history(history):

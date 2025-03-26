@@ -19,7 +19,7 @@ train_ds, test_ds = load_cifar10()
 
 #Display dataset statistics
 dataset_basic_statistics(train_ds)
-plot_random_images(train_ds)
+#plot_random_images(train_ds)
 Sleep(5000)
 
 # Specify model name
@@ -27,6 +27,9 @@ model_name = "mobilenet_v2_cnn"
 
 # Build model with custom name
 model = build_mobilenet_model()
+#TODO Tobb epoch, early stop, confusion matrix, novelni a teljesitmenyt
+#TODO pipleineositani az egeszet modellre
+
 
 # Plot model
 plot_model(model, to_file=f"../results/architecture/{model_name}_architecture.png", show_shapes=True, show_layer_names=True)
