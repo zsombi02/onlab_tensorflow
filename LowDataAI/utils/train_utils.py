@@ -4,6 +4,12 @@ import json
 import os
 import datetime
 
+from keras.src.utils import plot_model
+
+HISTORY_DIR = "../results/history/"
+ARCH_DIR = "../results/architecture/"
+os.makedirs(ARCH_DIR, exist_ok=True)
+os.makedirs(HISTORY_DIR, exist_ok=True)
 
 def train_model(model, train_ds, val_ds, epochs=10, callbacks=None):
     """
@@ -25,9 +31,6 @@ def train_model(model, train_ds, val_ds, epochs=10, callbacks=None):
 def plot_training_history(history):
     """
     Plots training and validation accuracy and loss.
-
-    Args:
-        history: Training history returned by model.fit.
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -49,35 +52,55 @@ def plot_training_history(history):
 
     plt.show()
 
-
-HISTORY_DIR = "../results/history/"
-os.makedirs(HISTORY_DIR, exist_ok=True)
-
-def save_training_history(history, model_name):
+def save_training_history(history, pipeline):
     """
-    Saves training history into a timestamped JSON file inside the history directory.
-
-    Args:
-        history: The training history object returned by model.fit().
-        model_name (str): Name of the model to save history for.
+    Saves training history and pipeline config into a timestamped JSON file.
     """
+    model_name = pipeline.model_name
     history_file = os.path.join(HISTORY_DIR, f"{model_name}_history.json")
-
-    # Generate timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    # Load existing history if available
+    # Dynamically extract config
+    config = {
+        "model_name": pipeline.model_name,
+        "epochs": pipeline.epochs,
+        "model_cls": pipeline.model_cls.__name__,
+        "dataset_loader": pipeline.dataset_loader.__name__ if pipeline.dataset_loader else None,
+        "callbacks": [type(cb).__name__ for cb in pipeline.callbacks]
+    }
+
+    entry = {
+        "training_config": config,
+        "history": history.history
+    }
+
     if os.path.exists(history_file):
         with open(history_file, 'r') as f:
             existing_history = json.load(f)
     else:
         existing_history = {}
 
-    # Append new training history with timestamp
-    existing_history[timestamp] = history.history
+    existing_history[timestamp] = entry
 
-    # Save updated history file
     with open(history_file, 'w') as f:
         json.dump(existing_history, f, indent=4)
 
-    print(f"Training history saved to {history_file}")
+    print(f"📝 Training history saved to {history_file}")
+
+
+def save_model_architecture_plot(model, model_name):
+    """
+    Saves a visual architecture plot of the model to the architecture folder.
+
+    Args:
+        model (tf.keras.Model): The Keras model.
+        model_name (str): Filename prefix for the saved plot.
+    """
+    path = os.path.join(ARCH_DIR, f"{model_name}_architecture.png")
+    plot_model(
+        model,
+        to_file=path,
+        show_shapes=True,
+        show_layer_names=True
+    )
+    print(f"📐 Model architecture saved to {path}")

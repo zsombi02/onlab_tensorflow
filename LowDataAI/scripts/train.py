@@ -5,10 +5,8 @@ from win32api import Sleep
 
 from data.cifar10 import load_cifar10
 from models.mobilenet import build_mobilenet_model
-from models.simple_cnn_dropout import build_cnn_model
 from utils.statistics_utils import dataset_basic_statistics
 from utils.train_utils import train_model, plot_training_history, save_training_history
-from utils.visualization_utils import plot_random_images
 
 # Create directories for saved models if they don't exist
 MODEL_DIR = "../models/saved_models/"
@@ -27,8 +25,6 @@ model_name = "mobilenet_v2_cnn"
 
 # Build model with custom name
 model = build_mobilenet_model()
-#TODO Tobb epoch, early stop, confusion matrix, novelni a teljesitmenyt
-#TODO pipleineositani az egeszet modellre
 
 
 # Plot model
