@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 
 from utils.data_utils import dataset_basic_statistics
-from utils.validation_utils import plot_classification_report, plot_confusion_matrix, \
-    log_basic_evaluation_results
+from utils.validation_utils import log_basic_evaluation_results, save_confusion_matrix_json, \
+    save_classification_report_json, plot_confusion_matrix, plot_classification_report, save_overall_metrics
 
 MODEL_DIR = "../models/saved_models/"
 
@@ -34,11 +34,12 @@ class ValidationPipeline:
     def evaluate(self):
         test_loss, test_acc = self.model.evaluate(self.test_ds, verbose=2)
         log_basic_evaluation_results(test_acc, test_loss, self.model_name)
+        save_overall_metrics(test_acc, test_loss, self.model_name, dataset_name=self.dataset_loader.__name__)
+
 
     def evaluate_detailed(self):
         print("📐 Generating predictions and computing metrics...")
-        y_true = []
-        y_pred = []
+        y_true, y_pred = [], []
 
         for images, labels in self.test_ds:
             preds = self.model.predict(images, verbose=0)
@@ -46,13 +47,16 @@ class ValidationPipeline:
             y_pred.extend(np.argmax(preds, axis=1))
 
         # Confusion Matrix
+        cm = confusion_matrix(y_true, y_pred)
         plot_confusion_matrix(y_true, y_pred, self.model_name)
+        save_confusion_matrix_json(cm, self.model_name)
 
-        # Classification Report
-        report = classification_report(y_true, y_pred, digits=4, output_dict=True)
-        plot_classification_report(report, self.model_name)
+        # Classification Report (dict + string)
+        report_dict = classification_report(y_true, y_pred, digits=4, output_dict=True)
+        report_str = classification_report(y_true, y_pred, digits=4, output_dict=False)
 
-
+        plot_classification_report(report_str, self.model_name)
+        save_classification_report_json(report_dict, self.model_name)
 
     def run(self):
         self.load_model()
@@ -66,8 +70,10 @@ if __name__ == "__main__":
     from data.cifar10 import load_cifar10
 
     validator = ValidationPipeline(
-        model_name="convNextV1",
+        model_name="cnn_v4",
         dataset_loader=load_cifar10,
         batch_size=32
     )
     validator.run()
+
+#label encoder scikit

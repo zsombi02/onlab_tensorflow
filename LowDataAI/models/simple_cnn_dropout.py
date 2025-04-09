@@ -13,8 +13,9 @@ class SimpleCNNModel(BaseModel):
         model = tf.keras.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=self.input_shape),
             tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU(),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dropout(0.25),
 
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
             tf.keras.layers.BatchNormalization(),
@@ -24,22 +25,28 @@ class SimpleCNNModel(BaseModel):
             tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Dropout(0.35),
+
+            tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Dropout(0.4),
 
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(256, activation='relu'),
+            tf.keras.layers.GlobalAveragePooling2D(),
+
+            tf.keras.layers.Dense(1024, activation='swish'),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Dropout(self.dropout_rate),
+
             tf.keras.layers.Dense(self.num_classes, activation='softmax')
         ])
 
-        #TODO ConvNext architect
-
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0002),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )
 
         model.summary()
         return model
+

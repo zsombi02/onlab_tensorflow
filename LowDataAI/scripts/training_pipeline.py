@@ -44,7 +44,7 @@ class TrainingPipeline:
     def train(self):
         print("🚀 Starting training...")
 
-        history = self.model.fit(self.train_ds, validation_data=self.test_ds, epochs=self.epochs, callbacks=[self.callbacks])
+        history = self.model.fit(self.train_ds, validation_data=self.test_ds, epochs=self.epochs, callbacks=self.callbacks)
 
         save_training_history(history, self)
         plot_training_history(history)
@@ -68,18 +68,25 @@ if __name__ == "__main__":
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_loss',
-        patience=5,
-        min_delta=0.001,
+        patience=7,
         restore_best_weights=True,
         verbose=1
     )
 
+    learning_rate = tf.keras.callbacks.ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.5,
+                patience=3,
+                min_lr=1e-6,
+                verbose=1
+    )
+
     pipeline = TrainingPipeline(
-        model_cls=ConvNextExtendedModel,
-        model_name="convNextV1",
-        epochs=20,
+        model_cls=SimpleCNNModel,
+        model_name="Cnn_v4",
+        epochs=75,
         dataset_loader=load_cifar10,
-        callbacks=[early_stopping]
+        callbacks=[learning_rate, early_stopping]
     )
     pipeline.run()
 

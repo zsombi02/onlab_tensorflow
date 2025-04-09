@@ -23,11 +23,10 @@ class ConvNextExtendedModel(BaseModel):
         convnext_base.trainable = self.train_backbone
 
         model = tf.keras.Sequential()
-        model.add(tf.keras.layers.Rescaling(1./255, input_shape=self.input_shape))  # Normalize CIFAR-10 images
         model.add(convnext_base)
-        model.add(tf.keras.layers.GlobalAveragePooling2D())
+        model.add(tf.keras.layers.Flatten())
         model.add(tf.keras.layers.Dropout(self.dropout_rate))
-        model.add(tf.keras.layers.Dense(512, activation='relu'))
+        model.add(tf.keras.layers.Dense(256, activation='relu'))
         model.add(tf.keras.layers.BatchNormalization())
         model.add(tf.keras.layers.Dropout(self.dropout_rate))
         model.add(tf.keras.layers.Dense(self.num_classes, activation='softmax'))

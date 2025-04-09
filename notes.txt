@@ -1,3 +1,5 @@
 03.17:
 A dropout layerek hozzáadásával a validation loss normalizálódott, követi a train loss ívét kb, a pontosság pedig kb 10% javult
 Mobilenet V2 eleg durva kiugras van a validation lossban, es az accuracy se olyan kiemelkedo
+
+Note: CIFAR-10 images are only 32×32, so by the 4th pooling layer you're down to 2×2 spatial size. You can't go much deeper without losing spatial info — but 4 conv blocks is a good max.
