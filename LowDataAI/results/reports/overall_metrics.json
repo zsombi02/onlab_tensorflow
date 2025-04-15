@@ -1,0 +1,63 @@
+{
+    "cnn_v4": {
+        "2025-04-09_20-01-40": {
+            "dataset": "load_cifar10",
+            "test_accuracy": 0.8371999859809875,
+            "test_loss": 0.4866725206375122
+        }
+    },
+    "cnn_v4_Halved": {
+        "2025-04-09_21-19-04": {
+            "dataset": "load_cifar10_halved",
+            "test_accuracy": 0.7544000148773193,
+            "test_loss": 0.7464343905448914
+        }
+    },
+    "cnn_v4_Quartered": {
+        "2025-04-09_22-24-34": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.5956000089645386,
+            "test_loss": 1.224073052406311
+        }
+    },
+    "cnn_v4_Eight": {
+        "2025-04-09_22-31-26": {
+            "dataset": "load_cifar10_eight",
+            "test_accuracy": 0.37929999828338623,
+            "test_loss": 1.8471089601516724
+        }
+    },
+    "Cnn_v4_Quarter_Fewer_Frogs": {
+        "2025-04-13_18-18-40": {
+            "dataset": "load_cifar10_quartered_fewer_frogs",
+            "test_accuracy": 0.708299994468689,
+            "test_loss": 0.8916009068489075
+        }
+    },
+    "Cnn_v4_Quarter_boost_critical_double": {
+        "2025-04-13_18-53-13": {
+            "dataset": "load_cifar10_quartered_boost_critical_double",
+            "test_accuracy": 0.6814000010490417,
+            "test_loss": 0.9633418917655945
+        },
+        "2025-04-13_18-58-26": {
+            "dataset": "load_cifar10_quartered_boost_critical_double",
+            "test_accuracy": 0.6814000010490417,
+            "test_loss": 0.9633420705795288
+        }
+    },
+    "Cnn_v4_Quarter_augmented_double": {
+        "2025-04-13_19-53-33": {
+            "dataset": "load_cifar10_quartered_augmented_double",
+            "test_accuracy": 0.5681999921798706,
+            "test_loss": 1.2778211832046509
+        }
+    },
+    "Cnn_v4_Quarter_fewer_frogs_augmented_double": {
+        "2025-04-13_20-55-14": {
+            "dataset": "load_cifar10_quartered_fewer_frogs_augmented_double",
+            "test_accuracy": 0.5467000007629395,
+            "test_loss": 1.4372531175613403
+        }
+    }
+}
