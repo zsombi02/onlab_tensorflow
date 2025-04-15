@@ -47,14 +47,6 @@ def plot_classification_report(report_str : str, model_name: str):
     plt.text(0.01, 0.95, report_str, family='monospace', fontsize=10)
     plt.tight_layout()
 
-    fig_path = os.path.join(REPORTS_DIR, f"{model_name}_classification_report.png")
-    plt.savefig(fig_path)
-    plt.show()
-    print(f"🖼️ Classification report figure saved to {fig_path}")
-    report_txt_path = os.path.join(REPORTS_DIR, f"{model_name}_classification_report.txt")
-    with open(report_txt_path, 'w') as f:
-        f.write(report_str)
-    print(f"📁 Classification report saved to: {report_txt_path}")
 
 
 def plot_confusion_matrix(y_true, y_pred, model_name):

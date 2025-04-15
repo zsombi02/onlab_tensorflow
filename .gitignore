@@ -137,7 +137,10 @@ env.bak/
 venv.bak/
 .idea
 
+
+
 # Spyder project settings
+3,0
 .spyderproject
 .spyproject
 
@@ -170,3 +173,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+lowDataAI/data/tdfs_data/
