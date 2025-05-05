@@ -59,5 +59,67 @@
             "test_accuracy": 0.5467000007629395,
             "test_loss": 1.4372531175613403
         }
+    },
+    "Quartered_Non_Animals": {
+        "2025-04-29_16-35-37": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.23350000381469727,
+            "test_loss": 4.190234184265137
+        },
+        "2025-05-04_21-03-19": {
+            "dataset": "load_cifar10_quartered_nonanimals",
+            "test_accuracy": 0.5837500095367432,
+            "test_loss": 1.266530156135559
+        }
+    },
+    "Quartered_Combined": {
+        "2025-04-29_16-37-04": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.24379999935626984,
+            "test_loss": 2.0781664848327637
+        },
+        "2025-04-29_16-39-14": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.24379999935626984,
+            "test_loss": 2.0781667232513428
+        }
+    },
+    "Quartered_Animals": {
+        "2025-04-29_16-40-32": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.10909999907016754,
+            "test_loss": 2.764434337615967
+        },
+        "2025-05-04_20-57-07": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.18060000240802765,
+            "test_loss": 2.654789924621582
+        },
+        "2025-05-04_20-58-52": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.17960000038146973,
+            "test_loss": 2.659350633621216
+        }
+    },
+    "Quartered_Animals_V2": {
+        "2025-05-04_21-27-49": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.16566666960716248,
+            "test_loss": 2.0862808227539062
+        }
+    },
+    "Quartered_Non_Animals_V2": {
+        "2025-05-04_21-33-07": {
+            "dataset": "load_cifar10_quartered_nonanimals",
+            "test_accuracy": 0.7565000057220459,
+            "test_loss": 0.661083459854126
+        }
+    },
+    "Quartered_Combined_V2": {
+        "2025-05-04_23-06-18": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.41339999437332153,
+            "test_loss": 1.738412857055664
+        }
     }
 }

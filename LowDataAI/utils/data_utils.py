@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
+
 # Set a custom directory for storing datasets
 DATASET_DIR = os.path.join("..", "data", "tfds_data")
 os.makedirs(DATASET_DIR, exist_ok=True)
@@ -55,6 +56,15 @@ def dataset_basic_statistics(dataset):
 
 import tensorflow as tf
 import numpy as np
+
+
+def ensure_model_has_input(model, input_shape):
+    try:
+        _ = model.input
+    except AttributeError:
+        dummy_input = tf.keras.Input(shape=input_shape)
+        model(dummy_input)  # Meghívja a modellt dummy inputtal
+    return model
 
 def create_subset(dataset, num_classes=10, subset_fraction=0.5, seed=42):
 
@@ -203,3 +213,167 @@ def create_augmented_dataset(dataset, factor=2, seed=42):
     full_dataset = full_dataset.shuffle(1000).batch(32).prefetch(tf.data.AUTOTUNE)
     return full_dataset
 
+def create_animal_subset(dataset, subset_fraction=0.25, seed=42):
+    import numpy as np
+    animal_classes = [2, 3, 4, 5, 6, 7]  # CIFAR-10: bird, cat, deer, dog, frog, horse
+    label_mapping = {orig: i for i, orig in enumerate(animal_classes)}  # 2→0, 3→1, ..., 7→5
+
+    all_images = []
+    all_labels = []
+
+    for batch in dataset:
+        images, labels = batch
+        all_images.append(images)
+        all_labels.append(labels)
+
+    images = tf.concat(all_images, axis=0).numpy()
+    labels = tf.concat(all_labels, axis=0).numpy()
+
+    # Filter only animal classes
+    animal_indices = np.isin(labels, animal_classes)
+    animal_images = images[animal_indices]
+    animal_labels = labels[animal_indices]
+
+    # Remap labels to 0–5
+    remapped_labels = np.array([label_mapping[label] for label in animal_labels])
+
+    if subset_fraction < 1:
+        total_original = len(labels)
+        num_to_select = int(len(remapped_labels) * subset_fraction)
+        np.random.seed(seed)
+        selected_indices = np.random.choice(len(remapped_labels), num_to_select, replace=False)
+
+        subset_images = animal_images[selected_indices]
+        subset_labels = remapped_labels[selected_indices]
+    else:
+        subset_images = animal_images
+        subset_labels = remapped_labels
+
+    subset_ds = tf.data.Dataset.from_tensor_slices((subset_images, subset_labels))
+    subset_ds = subset_ds.shuffle(1000).batch(32).prefetch(tf.data.AUTOTUNE)
+    return subset_ds
+
+
+
+def create_nonanimal_subset(dataset, subset_fraction=0.25, seed=42):
+    import numpy as np
+    non_animal_classes = [0, 1, 8, 9]
+    label_mapping = {orig: i for i, orig in enumerate(non_animal_classes)}  # 0→0, 1→1, 8→2, 9→3
+
+    all_images = []
+    all_labels = []
+
+    for batch in dataset:
+        images, labels = batch
+        all_images.append(images)
+        all_labels.append(labels)
+
+    images = tf.concat(all_images, axis=0).numpy()
+    labels = tf.concat(all_labels, axis=0).numpy()
+
+    # Filter
+    non_animal_indices = np.isin(labels, non_animal_classes)
+    non_animal_images = images[non_animal_indices]
+    non_animal_labels = labels[non_animal_indices]
+
+    # 🔁 Map original labels to 0...3
+    remapped_labels = np.array([label_mapping[label] for label in non_animal_labels])
+
+    if subset_fraction < 1:
+        total_original = len(labels)
+        num_to_select = int(len(remapped_labels) * subset_fraction)
+        np.random.seed(seed)
+        selected_indices = np.random.choice(len(remapped_labels), num_to_select, replace=False)
+
+        subset_images = non_animal_images[selected_indices]
+        subset_labels = remapped_labels[selected_indices]
+    else:
+        subset_images = non_animal_images
+        subset_labels = remapped_labels
+
+    subset_ds = tf.data.Dataset.from_tensor_slices((subset_images, subset_labels))
+    subset_ds = subset_ds.shuffle(1000).batch(32).prefetch(tf.data.AUTOTUNE)
+    return subset_ds
+
+def extract_numpy_data(dataset):
+    """Convert a batched (image, label) dataset into full numpy arrays."""
+    images, labels = [], []
+    for img_batch, label_batch in dataset:
+        for i in range(len(img_batch)):
+            images.append(img_batch[i].numpy())
+            labels.append(label_batch[i].numpy())
+    return np.array(images), np.array(labels)
+
+
+def generate_siamese_pairs(X, y, num_pairs_per_class=1000, seed=42):
+    """Generate balanced positive/negative Siamese pairs for each class."""
+    rng = np.random.default_rng(seed)
+    unique_classes = np.unique(y)
+    class_indices = {label: np.where(y == label)[0] for label in unique_classes}
+
+    pairs, labels_out = [], []
+
+    for class_id in unique_classes:
+        same_class_idxs = class_indices[class_id]
+        diff_class_ids = unique_classes[unique_classes != class_id]
+
+        for _ in range(num_pairs_per_class):
+            # Positive pair (same class)
+            i1, i2 = rng.choice(same_class_idxs, 2, replace=False)
+            pairs.append([X[i1], X[i2]])
+            labels_out.append(1)
+
+            # Negative pair (different class)
+            neg_class = rng.choice(diff_class_ids)
+            i1 = rng.choice(same_class_idxs)
+            i2 = rng.choice(class_indices[neg_class])
+            pairs.append([X[i1], X[i2]])
+            labels_out.append(0)
+
+    X1 = np.array([p[0] for p in pairs])
+    X2 = np.array([p[1] for p in pairs])
+    y_out = np.array(labels_out)
+
+    return [X1, X2], y_out
+
+def apply_augment(image):
+    image = tf.image.random_flip_left_right(image)
+    image = tf.image.random_brightness(image, max_delta=0.1)
+    image = tf.image.rot90(image, k=tf.random.uniform([], 0, 4, dtype=tf.int32))
+    image = tf.image.random_contrast(image, 0.8, 1.2)
+    return image.numpy()
+
+
+def generate_siamese_pairs_with_augmentation(X, y, num_pairs_per_class=1000, seed=42):
+    rng = np.random.default_rng(seed)
+    unique_classes = np.unique(y)
+    class_indices = {label: np.where(y == label)[0] for label in unique_classes}
+
+    pairs, labels_out = [], []
+
+    for class_id in unique_classes:
+        same_class_idxs = class_indices[class_id]
+        diff_class_ids = unique_classes[unique_classes != class_id]
+
+        for _ in range(num_pairs_per_class):
+            # Positive pair (same class)
+            i1, i2 = rng.choice(same_class_idxs, 2, replace=False)
+            img1 = apply_augment(X[i1])
+            img2 = apply_augment(X[i2])
+            pairs.append([img1, img2])
+            labels_out.append(1)
+
+            # Negative pair (different class)
+            neg_class = rng.choice(diff_class_ids)
+            i1 = rng.choice(same_class_idxs)
+            i2 = rng.choice(class_indices[neg_class])
+            img1 = apply_augment(X[i1])
+            img2 = apply_augment(X[i2])
+            pairs.append([img1, img2])
+            labels_out.append(0)
+
+    X1 = np.array([p[0] for p in pairs])
+    X2 = np.array([p[1] for p in pairs])
+    y_out = np.array(labels_out)
+
+    return [X1, X2], y_out
