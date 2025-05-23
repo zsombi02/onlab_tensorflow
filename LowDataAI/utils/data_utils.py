@@ -1,5 +1,6 @@
 import collections
 import os
+import time
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
@@ -304,6 +305,14 @@ def extract_numpy_data(dataset):
             labels.append(label_batch[i].numpy())
     return np.array(images), np.array(labels)
 
+def save_dataset_snapshot(dataset, name_prefix="quartered_animals", output_dir="../results/dataset_snapshots"):
+    os.makedirs(output_dir, exist_ok=True)
+    images, labels = extract_numpy_data(dataset)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"{name_prefix}_{timestamp}.npz"
+    filepath = os.path.join(output_dir, filename)
+    np.savez_compressed(filepath, images=images, labels=labels)
+    print(f"📁 Dataset snapshot saved to {filepath}")
 
 def generate_siamese_pairs(X, y, num_pairs_per_class=1000, seed=42):
     """Generate balanced positive/negative Siamese pairs for each class."""
@@ -336,44 +345,46 @@ def generate_siamese_pairs(X, y, num_pairs_per_class=1000, seed=42):
 
     return [X1, X2], y_out
 
-def apply_augment(image):
+def apply_augment_tf(image):
     image = tf.image.random_flip_left_right(image)
     image = tf.image.random_brightness(image, max_delta=0.1)
-    image = tf.image.rot90(image, k=tf.random.uniform([], 0, 4, dtype=tf.int32))
     image = tf.image.random_contrast(image, 0.8, 1.2)
-    return image.numpy()
+    image = tf.image.rot90(image, k=tf.random.uniform([], 0, 4, dtype=tf.int32))
+    return image
 
-
-def generate_siamese_pairs_with_augmentation(X, y, num_pairs_per_class=1000, seed=42):
+def generate_siamese_pairs_dataset(X, y, num_pairs_per_class=1000, batch_size=32, seed=42):
     rng = np.random.default_rng(seed)
     unique_classes = np.unique(y)
     class_indices = {label: np.where(y == label)[0] for label in unique_classes}
 
-    pairs, labels_out = [], []
+    X1, X2, labels = [], [], []
 
     for class_id in unique_classes:
-        same_class_idxs = class_indices[class_id]
-        diff_class_ids = unique_classes[unique_classes != class_id]
+        same_idxs = class_indices[class_id]
+        diff_ids = unique_classes[unique_classes != class_id]
 
         for _ in range(num_pairs_per_class):
-            # Positive pair (same class)
-            i1, i2 = rng.choice(same_class_idxs, 2, replace=False)
-            img1 = apply_augment(X[i1])
-            img2 = apply_augment(X[i2])
-            pairs.append([img1, img2])
-            labels_out.append(1)
+            # Positive
+            i1, i2 = rng.choice(same_idxs, 2, replace=False)
+            X1.append(X[i1])
+            X2.append(X[i2])
+            labels.append(1)
 
-            # Negative pair (different class)
-            neg_class = rng.choice(diff_class_ids)
-            i1 = rng.choice(same_class_idxs)
+            # Negative
+            i1 = rng.choice(same_idxs)
+            neg_class = rng.choice(diff_ids)
             i2 = rng.choice(class_indices[neg_class])
-            img1 = apply_augment(X[i1])
-            img2 = apply_augment(X[i2])
-            pairs.append([img1, img2])
-            labels_out.append(0)
+            X1.append(X[i1])
+            X2.append(X[i2])
+            labels.append(0)
 
-    X1 = np.array([p[0] for p in pairs])
-    X2 = np.array([p[1] for p in pairs])
-    y_out = np.array(labels_out)
+    def preprocess(x1, x2, y):
+        x1 = apply_augment_tf(x1)
+        x2 = apply_augment_tf(x2)
+        return (x1, x2), y
 
-    return [X1, X2], y_out
+    ds = tf.data.Dataset.from_tensor_slices((X1, X2, labels))
+    ds = ds.shuffle(1000, seed=seed)
+    ds = ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+    ds = ds.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    return ds

@@ -3,3 +3,70 @@ A dropout layerek hozzáadásával a validation loss normalizálódott, követi 
 Mobilenet V2 eleg durva kiugras van a validation lossban, es az accuracy se olyan kiemelkedo
 
 Note: CIFAR-10 images are only 32×32, so by the 4th pooling layer you're down to 2×2 spatial size. You can't go much deeper without losing spatial info — but 4 conv blocks is a good max.
+
+
+
+D:\School\MSC\1.felev\onlab\onlab_tensorflow\LowDataAI\.venv\Scripts\python.exe D:\School\MSC\1.felev\onlab\onlab_tensorflow\LowDataAI\scripts\training_pipeline_siamese.py 
+2025-05-16 21:47:35.867566: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-05-16 21:47:37.865617: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+✅ Dataset 'cifar10' found locally. Using cached version.
+2025-05-16 21:47:43.548709: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-05-16 21:47:43.847189: I tensorflow/core/kernels/data/tf_record_dataset_op.cc:376] The default buffer size is 262144, which is overridden by the user specified `buffer_size` of 8388608
+2025-05-16 21:47:45.788195: I tensorflow/core/framework/local_rendezvous.cc:405] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+2025-05-16 21:47:47.544601: I tensorflow/core/framework/local_rendezvous.cc:405] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+2025-05-16 21:48:10.793735: I tensorflow/core/framework/local_rendezvous.cc:405] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+D:\School\MSC\1.felev\onlab\onlab_tensorflow\LowDataAI\.venv\Lib\site-packages\keras\src\layers\core\input_layer.py:27: UserWarning: Argument `input_shape` is deprecated. Use `shape` instead.
+  warnings.warn(
+WARNING:tensorflow:From D:\School\MSC\1.felev\onlab\onlab_tensorflow\LowDataAI\.venv\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+WARNING:tensorflow:From D:\School\MSC\1.felev\onlab\onlab_tensorflow\LowDataAI\.venv\Lib\site-packages\keras\src\backend\tensorflow\core.py:216: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+Model: "siamese_model"
+┌─────────────────────┬───────────────────┬────────────┬───────────────────┐
+│ Layer (type)        │ Output Shape      │    Param # │ Connected to      │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ siamese_input_a     │ (None, 32, 32, 3) │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ siamese_input_b     │ (None, 32, 32, 3) │          0 │ -                 │
+│ (InputLayer)        │                   │            │                   │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ siamese_base        │ (None, 256)       │    128,192 │ siamese_input_a[… │
+│ (Sequential)        │                   │            │ siamese_input_b[… │
+├─────────────────────┼───────────────────┼────────────┼───────────────────┤
+│ siamese_distance    │ (None, 1)         │          0 │ siamese_base[0][… │
+│ (Lambda)            │                   │            │ siamese_base[1][… │
+└─────────────────────┴───────────────────┴────────────┴───────────────────┘
+ Total params: 128,192 (500.75 KB)
+ Trainable params: 127,232 (497.00 KB)
+ Non-trainable params: 960 (3.75 KB)
+Epoch 1/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 35s 79ms/step - accuracy: 0.5013 - loss: 0.9671 - val_accuracy: 0.4913 - val_loss: 0.8297 - learning_rate: 2.0000e-04
+Epoch 2/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 79ms/step - accuracy: 0.4999 - loss: 0.8279 - val_accuracy: 0.4817 - val_loss: 0.5152 - learning_rate: 2.0000e-04
+Epoch 3/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 80ms/step - accuracy: 0.5003 - loss: 0.4260 - val_accuracy: 0.4910 - val_loss: 0.4624 - learning_rate: 2.0000e-04
+Epoch 4/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 79ms/step - accuracy: 0.5034 - loss: 0.3386 - val_accuracy: 0.4837 - val_loss: 0.5336 - learning_rate: 2.0000e-04
+Epoch 5/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 79ms/step - accuracy: 0.5009 - loss: 0.2968 - val_accuracy: 0.4963 - val_loss: 0.9296 - learning_rate: 2.0000e-04
+Epoch 6/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 0s 73ms/step - accuracy: 0.5023 - loss: 0.2019
+Epoch 6: ReduceLROnPlateau reducing learning rate to 9.999999747378752e-05.
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 79ms/step - accuracy: 0.5023 - loss: 0.2019 - val_accuracy: 0.4923 - val_loss: 0.9410 - learning_rate: 2.0000e-04
+Epoch 7/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 31s 81ms/step - accuracy: 0.4952 - loss: 0.1987 - val_accuracy: 0.5003 - val_loss: 0.9347 - learning_rate: 1.0000e-04
+Epoch 8/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 78ms/step - accuracy: 0.5005 - loss: 0.2005 - val_accuracy: 0.5087 - val_loss: 0.9141 - learning_rate: 1.0000e-04
+Epoch 9/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 0s 73ms/step - accuracy: 0.4986 - loss: 0.2001
+Epoch 9: ReduceLROnPlateau reducing learning rate to 4.999999873689376e-05.
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 79ms/step - accuracy: 0.4986 - loss: 0.2002 - val_accuracy: 0.5047 - val_loss: 0.9189 - learning_rate: 1.0000e-04
+Epoch 10/50
+375/375 ━━━━━━━━━━━━━━━━━━━━ 30s 80ms/step - accuracy: 0.5026 - loss: 0.2015 - val_accuracy: 0.5063 - val_loss: 0.9295 - learning_rate: 5.0000e-05
+Epoch 10: early stopping
+Restoring model weights from the end of the best epoch: 3.
+✅ Model saved.
+
+Process finished with exit code 0

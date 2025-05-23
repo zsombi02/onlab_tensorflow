@@ -120,6 +120,207 @@
             "dataset": "load_cifar10_quartered",
             "test_accuracy": 0.41339999437332153,
             "test_loss": 1.738412857055664
+        },
+        "2025-05-18_19-15-16": {
+            "dataset": "load_cifar10",
+            "test_accuracy": 0.41339999437332153,
+            "test_loss": 1.7384133338928223
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_01": {
+        "2025-05-17_10-39-44": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.44983333349227905,
+            "test_loss": 1.44671630859375
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_02": {
+        "2025-05-17_10-40-21": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.3714999854564667,
+            "test_loss": 1.9513643980026245
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_03": {
+        "2025-05-17_10-40-54": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.3241666555404663,
+            "test_loss": 2.370330333709717
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_04": {
+        "2025-05-17_10-41-22": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.3375000059604645,
+            "test_loss": 1.8932758569717407
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_05": {
+        "2025-05-17_10-41-50": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.4934999942779541,
+            "test_loss": 1.3661566972732544
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_06": {
+        "2025-05-17_10-42-18": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.5198333263397217,
+            "test_loss": 1.4482808113098145
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_07": {
+        "2025-05-17_10-42-42": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.437666654586792,
+            "test_loss": 1.5228526592254639
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_08": {
+        "2025-05-17_10-43-08": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.41083332896232605,
+            "test_loss": 1.647616982460022
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_09": {
+        "2025-05-17_10-43-32": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.43816667795181274,
+            "test_loss": 1.6797542572021484
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_10": {
+        "2025-05-17_10-43-56": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.3955000042915344,
+            "test_loss": 1.9516979455947876
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_11": {
+        "2025-05-17_10-44-19": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.43933331966400146,
+            "test_loss": 1.6240997314453125
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_12": {
+        "2025-05-17_10-44-43": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.40299999713897705,
+            "test_loss": 1.758236050605774
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_13": {
+        "2025-05-17_10-45-08": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.4193333387374878,
+            "test_loss": 1.777224063873291
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_14": {
+        "2025-05-17_10-45-35": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.42116665840148926,
+            "test_loss": 1.7468619346618652
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_15": {
+        "2025-05-17_10-46-11": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.47066667675971985,
+            "test_loss": 1.567785620689392
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_16": {
+        "2025-05-17_10-46-53": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.4541666805744171,
+            "test_loss": 1.6472350358963013
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_17": {
+        "2025-05-17_10-47-31": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.3400000035762787,
+            "test_loss": 2.0406103134155273
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_18": {
+        "2025-05-17_10-48-05": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.41333332657814026,
+            "test_loss": 1.6956239938735962
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_19": {
+        "2025-05-17_10-48-39": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.17900000512599945,
+            "test_loss": 2.276607036590576
+        }
+    },
+    "Multirun_Quartered_Animals_V2_Run_20": {
+        "2025-05-17_10-49-12": {
+            "dataset": "load_cifar10_quartered_animals",
+            "test_accuracy": 0.47733333706855774,
+            "test_loss": 1.4309455156326294
+        }
+    },
+    "Combined_TopAnimal_01": {
+        "2025-05-17_11-46-36": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.41370001435279846,
+            "test_loss": 1.6992548704147339
+        }
+    },
+    "Combined_TopAnimal_02": {
+        "2025-05-17_11-47-22": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.42399999499320984,
+            "test_loss": 1.7217501401901245
+        }
+    },
+    "Combined_TopAnimal_03": {
+        "2025-05-17_11-48-10": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.4481000006198883,
+            "test_loss": 1.659651756286621
+        }
+    },
+    "Combined_TopAnimal_04": {
+        "2025-05-17_11-48-56": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.40380001068115234,
+            "test_loss": 1.7862474918365479
+        }
+    },
+    "Combined_TopAnimal_05": {
+        "2025-05-17_11-49-44": {
+            "dataset": "load_cifar10_quartered",
+            "test_accuracy": 0.37619999051094055,
+            "test_loss": 1.8312174081802368
+        }
+    },
+    "Halved_Animals_V2": {
+        "2025-05-17_11-52-45": {
+            "dataset": "load_cifar10_halved_animals",
+            "test_accuracy": 0.3998333215713501,
+            "test_loss": 1.5956950187683105
+        }
+    },
+    "Full_Animals_V2": {
+        "2025-05-17_11-54-33": {
+            "dataset": "load_cifar10_full_animals",
+            "test_accuracy": 0.7126666903495789,
+            "test_loss": 0.7995806336402893
+        }
+    },
+    "Combined_FullAnimal_QuarterNonAnimal": {
+        "2025-05-17_14-34-40": {
+            "dataset": "load_cifar10",
+            "test_accuracy": 0.5637000203132629,
+            "test_loss": 1.3467155694961548
         }
     }
 }

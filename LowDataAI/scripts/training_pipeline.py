@@ -68,7 +68,8 @@ if __name__ == "__main__":
     from data.cifar10 import load_cifar10, load_cifar10_halved, load_cifar10_quartered, load_cifar10_eight, \
     load_cifar10_quartered_fewer_frogs, load_cifar10_quartered_boost_critical_double, \
     load_cifar10_quartered_augmented_double, load_cifar10_quartered_fewer_frogs_augmented_double, \
-    load_cifar10_quartered_animals, load_cifar10_quartered_nonanimals, load_cifar10_quartered_animals_siamese
+    load_cifar10_quartered_animals, load_cifar10_quartered_nonanimals, \
+    load_cifar10_quartered_animals_save, load_cifar10_halved_animals, load_cifar10_full_animals
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_loss',
@@ -157,15 +158,67 @@ if __name__ == "__main__":
     # )
     # pipeline.run()
     #
+    # pipeline = TrainingPipeline(
+    #     model_cls= CombinedCNNModel,
+    #     model_name="Quartered_Combined_V2",
+    #     epochs=75,
+    #     dataset_loader=load_cifar10_quartered,
+    #     callbacks=[learning_rate, early_stopping]
+    # )
+
+    # for i in range(1, 26):  # 1-től 25-ig
+    #     model_name = f"Multirun_Quartered_Animals_V2_Run_{i:02d}"
+    #     print(f"\n🚀 Starting run {i}/25: {model_name}")
+    #
+    #     pipeline = TrainingPipeline(
+    #         model_cls=lambda: SimpleCNNModelNamed(num_classes=6),
+    #         model_name=model_name,
+    #         epochs=75,
+    #         dataset_loader=load_cifar10_quartered_animals_save,
+    #         callbacks=[learning_rate, early_stopping]
+    #     )
+    #     pipeline.run()
+
+    # pipeline = TrainingPipeline(
+    #     model_cls= lambda:  SimpleCNNModelNamed(num_classes=6),
+    #     model_name="Halved_Animals_V2",
+    #     epochs=75,
+    #     dataset_loader=load_cifar10_halved_animals,
+    #     callbacks=[learning_rate, early_stopping]
+    # )
+    # pipeline.run()
+    #
+    # pipeline = TrainingPipeline(
+    #     model_cls= lambda:  SimpleCNNModelNamed(num_classes=6),
+    #     model_name="Full_Animals_V2",
+    #     epochs=75,
+    #     dataset_loader=load_cifar10_full_animals,
+    #     callbacks=[learning_rate, early_stopping]
+    # )
+    # pipeline.run()
+    #
+    # top_5_animal_models = [
+    #     "Multirun_Quartered_Animals_V2_Run_06.keras",
+    #     "Multirun_Quartered_Animals_V2_Run_05.keras",
+    #     "Multirun_Quartered_Animals_V2_Run_20.keras",
+    #     "Multirun_Quartered_Animals_V2_Run_15.keras",
+    #     "Multirun_Quartered_Animals_V2_Run_16.keras"
+    # ]
+    #
+    # for i, animal_model in enumerate(top_5_animal_models, start=1):
+    #     model_name = f"Combined_TopAnimal_{i:02d}"
+    #     print(f"\n🚀 Starting Combined Model Run {i}: {model_name} using {animal_model}")
+    #
     pipeline = TrainingPipeline(
-        model_cls= CombinedCNNModel,
-        model_name="Quartered_Combined_V2",
-        epochs=75,
-        dataset_loader=load_cifar10_quartered,
-        callbacks=[learning_rate, early_stopping]
+            model_cls=lambda: CombinedCNNModel(
+                animal_model_filename="Full_Animals_V2.keras",
+                non_animal_model_filename="Quartered_Non_Animals_V2.keras",
+                input_shape=(32, 32, 3),
+                num_classes=10
+            ),
+            model_name="Combined_FullAnimal_QuarterNonAnimal",
+            epochs=75,
+            dataset_loader=load_cifar10_quartered,
+            callbacks=[learning_rate, early_stopping]
     )
-
     pipeline.run()
-
-
-

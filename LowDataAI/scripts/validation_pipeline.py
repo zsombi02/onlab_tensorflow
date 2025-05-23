@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classifica
 from data.cifar10 import load_cifar10, load_cifar10_halved, load_cifar10_quartered, load_cifar10_eight, \
     load_cifar10_quartered_fewer_frogs, load_cifar10_quartered_augmented_double, \
     load_cifar10_quartered_fewer_frogs_augmented_double, load_cifar10_quartered_animals, \
-    load_cifar10_quartered_nonanimals
+    load_cifar10_quartered_nonanimals, load_cifar10_halved_animals, load_cifar10_full_animals
 
 from utils.data_utils import dataset_basic_statistics
 from utils.validation_utils import log_basic_evaluation_results, save_confusion_matrix_json, \
@@ -74,9 +74,32 @@ if __name__ == "__main__":
 
     validator = ValidationPipeline(
         model_name="Quartered_Combined_V2",
-        dataset_loader=load_cifar10_quartered,
+        dataset_loader=load_cifar10,
         batch_size=32
     )
     validator.run()
+
+
+    # for i in range(1, 21):  # 1-től 25-ig
+    #     model_name = f"Multirun_Quartered_Animals_V2_Run_{i:02d}"
+    #     print(f"\n🚀 Starting run {i}/25: {model_name}")
+    #
+    #     validator = ValidationPipeline(
+    #         model_name=model_name,
+    #         dataset_loader=load_cifar10_quartered_animals,
+    #         batch_size=32
+    #     )
+    #     validator.run()
+
+    # for i in range(1, 21):  # 1-től 25-ig
+    #     model_name = f"Combined_TopAnimal_{i:02d}"
+    #     print(f"\n🚀 Starting run {i}/25: {model_name}")
+    #
+    #     validator = ValidationPipeline(
+    #         model_name=model_name,
+    #         dataset_loader=load_cifar10_quartered,
+    #         batch_size=32
+    #     )
+    #     validator.run()
 
 #augmentalas egysegesen

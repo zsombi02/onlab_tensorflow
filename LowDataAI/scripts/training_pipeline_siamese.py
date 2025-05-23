@@ -1,17 +1,13 @@
 import os
 import tensorflow as tf
 from models.siamese import SiameseModel
-from data.cifar10 import load_cifar10_quartered_animals_siamese
+from data.cifar10 import load_cifar10_full_animals_siamese
 
 os.makedirs("../models/saved_models", exist_ok=True)
 
 def run_siamese_training():
     # 🔹 1. Adat betöltése
-    (train_X, train_y), (val_X, val_y) = load_cifar10_quartered_animals_siamese()
-
-    train_ds = tf.data.Dataset.from_tensor_slices(((train_X[0], train_X[1]), train_y)).batch(32).prefetch(
-        tf.data.AUTOTUNE)
-    val_ds = tf.data.Dataset.from_tensor_slices(((val_X[0], val_X[1]), val_y)).batch(32).prefetch(tf.data.AUTOTUNE)
+    train_ds, val_ds = load_cifar10_full_animals_siamese()
 
     # 🔹 2. Modell létrehozása
     model = SiameseModel().build()
@@ -35,7 +31,7 @@ def run_siamese_training():
     model.fit(train_ds, validation_data=val_ds, epochs=50, callbacks=[early_stopping, reduce_lr])
 
     # 🔹 5. Mentés
-    model.save("../models/saved_models/Quartered_Animals_Siamese.keras")
+    model.save("../models/saved_models/Full_Animals_Siamese.keras")
     print("✅ Model saved.")
 
 if __name__ == "__main__":

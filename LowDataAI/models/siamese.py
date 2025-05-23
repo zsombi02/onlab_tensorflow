@@ -64,7 +64,7 @@ class SiameseModel(BaseModel):
 
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.0002),
-            loss=contrastive_loss(margin=1.0),
+            loss=contrastive_loss(margin=0.5),
             metrics=['accuracy']
         )
 

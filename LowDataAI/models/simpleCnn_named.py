@@ -51,3 +51,6 @@ class SimpleCNNModelNamed(BaseModel):
 
         model.summary()
         return model
+
+
+# minden dataset méretre kipróbálni csoportokra, és sok random futás animalre
