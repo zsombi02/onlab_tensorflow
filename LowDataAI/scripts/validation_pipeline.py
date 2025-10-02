@@ -2,13 +2,9 @@ import os
 import json
 import numpy as np
 import tensorflow as tf
-from matplotlib import pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
-from data.cifar10 import load_cifar10, load_cifar10_halved, load_cifar10_quartered, load_cifar10_eight, \
-    load_cifar10_quartered_fewer_frogs, load_cifar10_quartered_augmented_double, \
-    load_cifar10_quartered_fewer_frogs_augmented_double, load_cifar10_quartered_animals, \
-    load_cifar10_quartered_nonanimals, load_cifar10_halved_animals, load_cifar10_full_animals
+from sklearn.metrics import confusion_matrix, classification_report
 
+from data.imagenet_wrappers import tiny_full
 from utils.data_utils import dataset_basic_statistics
 from utils.validation_utils import log_basic_evaluation_results, save_confusion_matrix_json, \
     save_classification_report_json, plot_confusion_matrix, plot_classification_report, save_overall_metrics
@@ -40,7 +36,6 @@ class ValidationPipeline:
         log_basic_evaluation_results(test_acc, test_loss, self.model_name)
         save_overall_metrics(test_acc, test_loss, self.model_name, dataset_name=self.dataset_loader.__name__)
 
-
     def evaluate_detailed(self):
         print("📐 Generating predictions and computing metrics...")
         y_true, y_pred = [], []
@@ -50,17 +45,40 @@ class ValidationPipeline:
             y_true.extend(labels.numpy())
             y_pred.extend(np.argmax(preds, axis=1))
 
-        # Confusion Matrix
         cm = confusion_matrix(y_true, y_pred)
         plot_confusion_matrix(y_true, y_pred, self.model_name)
         save_confusion_matrix_json(cm, self.model_name)
 
-        # Classification Report (dict + string)
         report_dict = classification_report(y_true, y_pred, digits=4, output_dict=True)
         report_str = classification_report(y_true, y_pred, digits=4, output_dict=False)
 
         plot_classification_report(report_str, self.model_name)
         save_classification_report_json(report_dict, self.model_name)
+
+        # ➕ top1, macro-F1, ECE
+        all_probs = []
+        all_labels = []
+        for images, labels in self.test_ds:
+            probs = self.model.predict(images, verbose=0)
+            all_probs.append(probs)
+            all_labels.append(labels.numpy())
+        probs = np.concatenate(all_probs, axis=0)
+        labels = np.concatenate(all_labels, axis=0)
+
+        from sklearn.metrics import f1_score
+        from utils.imagenet_utils import compute_ece
+
+        top1 = (probs.argmax(axis=1) == labels).mean()
+        macro_f1 = f1_score(labels, probs.argmax(axis=1), average="macro")
+        ece = compute_ece(probs, labels, n_bins=15)
+
+        save_overall_metrics(
+            top1,  # accuracy
+            0.0,  # nincs loss itt kéznél, maradhat 0 vagy hagyd ki
+            self.model_name,
+            dataset_name=self.dataset_loader.__name__,
+            extra={"macro_f1": float(macro_f1), "ece": float(ece)}
+        )
 
     def run(self):
         self.load_model()
@@ -73,33 +91,33 @@ class ValidationPipeline:
 if __name__ == "__main__":
 
     validator = ValidationPipeline(
-        model_name="Quartered_Combined_V2",
-        dataset_loader=load_cifar10,
+        model_name="tiny_imagenet_from_scratch_10pct",
+        dataset_loader=tiny_full,
         batch_size=32
     )
     validator.run()
-
-
-    # for i in range(1, 21):  # 1-től 25-ig
-    #     model_name = f"Multirun_Quartered_Animals_V2_Run_{i:02d}"
-    #     print(f"\n🚀 Starting run {i}/25: {model_name}")
-    #
-    #     validator = ValidationPipeline(
-    #         model_name=model_name,
-    #         dataset_loader=load_cifar10_quartered_animals,
-    #         batch_size=32
-    #     )
-    #     validator.run()
-
-    # for i in range(1, 21):  # 1-től 25-ig
-    #     model_name = f"Combined_TopAnimal_{i:02d}"
-    #     print(f"\n🚀 Starting run {i}/25: {model_name}")
-    #
-    #     validator = ValidationPipeline(
-    #         model_name=model_name,
-    #         dataset_loader=load_cifar10_quartered,
-    #         batch_size=32
-    #     )
-    #     validator.run()
-
-#augmentalas egysegesen
+#
+#
+#     # for i in range(1, 21):  # 1-től 25-ig
+#     #     model_name = f"Multirun_Quartered_Animals_V2_Run_{i:02d}"
+#     #     print(f"\n🚀 Starting run {i}/25: {model_name}")
+#     #
+#     #     validator = ValidationPipeline(
+#     #         model_name=model_name,
+#     #         dataset_loader=load_cifar10_quartered_animals,
+#     #         batch_size=32
+#     #     )
+#     #     validator.run()
+#
+#     # for i in range(1, 21):  # 1-től 25-ig
+#     #     model_name = f"Combined_TopAnimal_{i:02d}"
+#     #     print(f"\n🚀 Starting run {i}/25: {model_name}")
+#     #
+#     #     validator = ValidationPipeline(
+#     #         model_name=model_name,
+#     #         dataset_loader=load_cifar10_quartered,
+#     #         batch_size=32
+#     #     )
+#     #     validator.run()
+#
+# #augmentalas egysegesen

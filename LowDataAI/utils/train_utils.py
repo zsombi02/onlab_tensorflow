@@ -1,10 +1,13 @@
+import shutil
+
+import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import json
 import os
 import datetime
 
-from keras.src.utils import plot_model
+from tensorflow.keras.utils import plot_model
 
 HISTORY_DIR = "../results/history/"
 ARCH_DIR = "../results/architecture/"
@@ -53,40 +56,39 @@ def plot_training_history(history):
     plt.show()
 
 def save_training_history(history, pipeline):
-    """
-    Saves training history and pipeline config into a timestamped JSON file.
-    """
     model_name = pipeline.model_name
     history_file = os.path.join(HISTORY_DIR, f"{model_name}_history.json")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    # Dynamically extract config
+    # history.history → tiszta python
+    clean_hist = {k: [_json_sanitize(v) for v in vals] for k, vals in history.history.items()}
+
     config = {
         "model_name": pipeline.model_name,
-        "epochs": pipeline.epochs,
-        "model_cls": pipeline.model_cls.__name__,
+        "epochs": int(pipeline.epochs),
+        "model_cls": getattr(pipeline.model_cls, "__name__", str(pipeline.model_cls)),
         "dataset_loader": pipeline.dataset_loader.__name__ if pipeline.dataset_loader else None,
-        "callbacks": [type(cb).__name__ for cb in pipeline.callbacks]
+        "callbacks": [type(cb).__name__ for cb in (pipeline.callbacks or [])],
     }
 
-    entry = {
-        "training_config": config,
-        "history": history.history
-    }
+    entry = {"training_config": config, "history": clean_hist}
 
+    existing = {}
     if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            existing_history = json.load(f)
-    else:
-        existing_history = {}
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+        except json.JSONDecodeError:
+            backup = history_file + f".corrupt_{timestamp}.bak"
+            shutil.copy2(history_file, backup)
+            print(f"⚠️  Corrupt history JSON → backup: {backup}. Új fájl készül.")
+            existing = {}
 
-    existing_history[timestamp] = entry
+    existing[timestamp] = entry
 
-    with open(history_file, 'w') as f:
-        json.dump(existing_history, f, indent=4)
-
+    with open(history_file, "w", encoding="utf-8") as f:
+        json.dump(existing, f, indent=4)
     print(f"📝 Training history saved to {history_file}")
-
 
 def save_model_architecture_plot(model, model_name):
     """
@@ -96,11 +98,35 @@ def save_model_architecture_plot(model, model_name):
         model (tf.keras.Model): The Keras model.
         model_name (str): Filename prefix for the saved plot.
     """
-    path = os.path.join(ARCH_DIR, f"{model_name}_architecture.png")
-    plot_model(
-        model,
-        to_file=path,
-        show_shapes=True,
-        show_layer_names=True
-    )
-    print(f"📐 Model architecture saved to {path}")
+    # path = os.path.join(ARCH_DIR, f"{model_name}_architecture.png")
+    # plot_model(
+    #     model,
+    #     to_file=path,
+    #     show_shapes=True,
+    #     show_layer_names=True
+    # )
+    # print(f"📐 Model architecture saved to {path}")
+    # TODO pydot
+
+def _json_sanitize(x):
+    # numpy skálákat → natív python
+    if isinstance(x, (np.generic,)):
+        return x.item()
+    # numpy tömb → list
+    if isinstance(x, np.ndarray):
+        return x.tolist()
+    # tf.Tensor → list (vagy skála esetén érték)
+    if isinstance(x, tf.Tensor):
+        x = x.numpy()
+        return x.tolist() if hasattr(x, "tolist") else x
+    # set → list
+    if isinstance(x, set):
+        return list(x)
+    return x
+
+def _json_sanitize_tree(obj):
+    if isinstance(obj, dict):
+        return {k: _json_sanitize_tree(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_sanitize_tree(v) for v in obj]
+    return _json_sanitize(obj)

@@ -3,7 +3,6 @@ import os
 import tensorflow as tf
 
 from models import BaseModel
-from models.combined_model import CombinedCNNModel
 from utils.data_utils import dataset_basic_statistics
 from utils.train_utils import plot_training_history, save_training_history, save_model_architecture_plot
 
@@ -23,7 +22,7 @@ class TrainingPipeline:
         self.model_name = model_name
         self.epochs = epochs
         self.model_cls = model_cls
-        self.dataset_loader = dataset_loader or load_cifar10  # Default to CIFAR-10 if not specified
+        self.dataset_loader = dataset_loader
         self.model = None
         self.train_ds, self.test_ds = None, None
         self.callbacks = callbacks
@@ -54,6 +53,23 @@ class TrainingPipeline:
         print(f"💾 Model saved at {path}")
 
     def run(self):
+
+        # GPU memória ne foglalódjon le fullra az elején
+        gpus = tf.config.list_physical_devices('GPU')
+        if gpus:
+            for gpu in gpus:
+                try:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                except Exception as e:
+                    print("GPU memory growth set failed:", e)
+            print("✅ GPUs:", gpus)
+        else:
+            print("⚠️  No GPU visible to TensorFlow")
+
+        # # (opcionális) mixed precision gyorsítás RTX kártyán
+        from tensorflow.keras import mixed_precision
+        mixed_precision.set_global_policy('float32')
+
         self.load_data()
         self.build_model()
         self.train()
@@ -62,7 +78,6 @@ class TrainingPipeline:
 
 
 if __name__ == "__main__":
-    from data.cifar10 import load_cifar10, load_cifar10_quartered
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_loss',
@@ -79,17 +94,17 @@ if __name__ == "__main__":
                 verbose=1
     )
 
-
-    pipeline = TrainingPipeline(
-            model_cls=lambda: CombinedCNNModel(
-                animal_model_filename="Full_Animals_V2.keras",
-                non_animal_model_filename="Quartered_Non_Animals_V2.keras",
-                input_shape=(32, 32, 3),
-                num_classes=10
-            ),
-            model_name="Combined_FullAnimal_QuarterNonAnimal",
-            epochs=75,
-            dataset_loader=load_cifar10_quartered,
-            callbacks=[learning_rate, early_stopping]
-    )
-    pipeline.run()
+    #
+    # pipeline = TrainingPipeline(
+    #         model_cls=lambda: CombinedCNNModel(
+    #             animal_model_filename="Full_Animals_V2.keras",
+    #             non_animal_model_filename="Quartered_Non_Animals_V2.keras",
+    #             input_shape=(32, 32, 3),
+    #             num_classes=10
+    #         ),
+    #         model_name="Combined_FullAnimal_QuarterNonAnimal",
+    #         epochs=75,
+    #         dataset_loader=load_cifar10_quartered,
+    #         callbacks=[learning_rate, early_stopping]
+    # )
+    # pipeline.run()
