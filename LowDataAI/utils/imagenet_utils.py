@@ -1,5 +1,6 @@
 # utils/imagenet_utils.py
 import glob
+import json
 import os
 import random
 import shutil
@@ -8,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
+import kagglehub
 
 AUTOTUNE = tf.data.AUTOTUNE
 
@@ -334,7 +336,8 @@ def per_class_file_subset(train_dir, class_names, fraction=0.1, seed=42):
     filepaths, labels = [], []
 
     for cls_idx, cls_name in enumerate(class_names):
-        cls_img_dir = os.path.join(train_dir, cls_name, "images")
+        # cls_img_dir = os.path.join(train_dir, cls_name, "images")
+        cls_img_dir = os.path.join(train_dir, cls_name)
         if not os.path.isdir(cls_img_dir):
             continue
 
@@ -381,3 +384,203 @@ def build_dataset_from_files(filepaths, labels, image_size, batch_size, shuffle=
     ds = ds.map(_load_img, num_parallel_calls=AUTOTUNE)
     ds = _build_ds(ds, image_size=image_size, batch_size=batch_size, shuffle=shuffle, augment=False)
     return ds
+
+
+def _safe_link_or_copy(src: Path, dst: Path):
+    if dst.exists():
+        return
+    try:
+        os.link(src, dst)         # hardlink (gyors, nem foglal plusz helyet)
+    except Exception:
+        shutil.copy2(src, dst)    # fallback: másolás
+
+def _has_class_subdirs(p: Path) -> bool:
+    return p.is_dir() and any(d.is_dir() for d in p.iterdir())
+
+def _list_image_files(p: Path):
+    exts = ("*.jpg", "*.jpeg", "*.png", "*.bmp")
+    files = []
+    for e in exts:
+        files.extend(glob.glob(str(p / e)))
+    return [Path(f) for f in files]
+
+def _discover_kaggle_shards(root: Path):
+    """
+    Visszaadja: (train_shards, val_shards, labels_json or None)
+    - train_shards: minden olyan mappa, ami 'train' kezdetű és VAN BENNE legalább egy osztálymappa
+    - val_shards:   minden olyan mappa, ami 'val' kezdetű (lehet osztálymappás vagy sima képfolder)
+    - labels.json:  ha a gyökérben (vagy alatta) van Labels.json, visszaadjuk az útját
+    """
+    train_shards, val_shards = [], []
+    labels_json = None
+
+    cand = list(root.glob("Labels.json")) + list(root.rglob("Labels.json"))
+    if cand:
+        labels_json = cand[0]
+
+    def _looks_like_class_shard(p: Path) -> bool:
+        return p.is_dir() and any(d.is_dir() for d in p.iterdir())
+
+    for d in root.iterdir():
+        if not d.is_dir():
+            continue
+        name = d.name
+        if name.startswith("train") and _looks_like_class_shard(d):
+            train_shards.append(d)
+        elif name.startswith("val"):  # val lehet sima képfolder is
+            val_shards.append(d)
+
+    if (not train_shards) or (not val_shards):
+        for d in root.iterdir():
+            if d.is_dir():
+                for s in d.iterdir():
+                    if not s.is_dir():
+                        continue
+                    n = s.name
+                    if n.startswith("train") and _looks_like_class_shard(s):
+                        train_shards.append(s)
+                    elif n.startswith("val"):
+                        val_shards.append(s)
+
+    if not train_shards:
+        raise FileNotFoundError("Nem találtam train.* shard mappákat a Kaggle datasetben.")
+    if not val_shards:
+        raise FileNotFoundError("Nem találtam val.* shard mappát a Kaggle datasetben.")
+
+    return sorted(set(train_shards)), sorted(set(val_shards)), labels_json
+
+def _gather_union_wnids(shards: list[Path]) -> list[str]:
+    """Összegyűjti az összes osztály (WNID) nevét minden shardból, determinista, rendezett listában."""
+    wnids = set()
+    for s in shards:
+        for d in s.iterdir():
+            if d.is_dir():
+                wnids.add(d.name)
+    return sorted(wnids)
+
+
+def _mirror_split_from_class_dirs(shards: list[Path], dst_split: Path, class_dirs_ref: list[str]):
+    """
+    Ha class_dirs_ref meg van adva, csak azokat az osztályokat tükrözzük.
+    Visszatér: (képszám, tükrözött_osztályok_set)
+    """
+    dst_split.mkdir(parents=True, exist_ok=True)
+    total = 0
+    mirrored = set()
+    for shard in shards:
+        for cls_dir in sorted([d for d in shard.iterdir() if d.is_dir()]):
+            wnid = cls_dir.name
+            if class_dirs_ref is not None and wnid not in class_dirs_ref:
+                continue
+            tcls = dst_split / wnid
+            tcls.mkdir(parents=True, exist_ok=True)
+            for f in _list_image_files(cls_dir):
+                _safe_link_or_copy(f, tcls / f.name)
+                total += 1
+            mirrored.add(wnid)
+    return total, mirrored
+
+
+def _mirror_val_with_labels(val_dir: Path, labels_json: Path, dst_split: Path, allowed_wnids: set[str]):
+    """
+    Labels.json alapján szétosztjuk a val képeket WNID mappákba.
+    Ha allowed_wnids meg van adva, csak azokra azonosítunk.
+    """
+    with open(labels_json, "r", encoding="utf-8") as f:
+        labels = json.load(f)
+
+    mapping = {}
+    if isinstance(labels, dict) and "images" in labels:
+        for item in labels["images"]:
+            fname = (item.get("file") or item.get("filename") or "").split("/")[-1]
+            wnid  = item.get("label") or item.get("wnid")
+            if fname and wnid:
+                mapping[fname] = str(wnid)
+    elif isinstance(labels, dict):
+        mapping = {str(k).split("/")[-1]: str(v) for k, v in labels.items()}
+    else:
+        raise ValueError("Ismeretlen Labels.json formátum.")
+
+    dst_split.mkdir(parents=True, exist_ok=True)
+
+    total = 0
+    for f in _list_image_files(val_dir):
+        wnid = mapping.get(f.name)
+        if not wnid:
+            continue
+        if allowed_wnids is not None and wnid not in allowed_wnids:
+            continue
+        tcls = dst_split / wnid
+        tcls.mkdir(parents=True, exist_ok=True)
+        _safe_link_or_copy(f, tcls / f.name)
+        total += 1
+    return total
+
+def ensure_imagenet100_from_kaggle(target_parent: str) -> str:
+    """
+    Letölt: ambityga/imagenet100 (kagglehub), és felépíti:
+    <target_parent>/imagenet-100/{train,val}/<wnid>/*.JPEG
+    """
+    kaggle_root = Path(kagglehub.dataset_download("ambityga/imagenet100"))
+    print(f"📥 Kaggle letöltés kész: {kaggle_root}")
+
+    train_shards, val_shards, labels_json = _discover_kaggle_shards(kaggle_root)
+    print("🔎 Train shardok:", [s.name for s in train_shards])
+    print("🔎 Val   shardok:", [s.name for s in val_shards])
+    if labels_json:
+        print(f"🔎 Labels.json: {labels_json}")
+
+    target_root = Path(target_parent) / "imagenet-100"
+    train_dst = target_root / "train"
+    val_dst   = target_root / "val"
+    train_dst.mkdir(parents=True, exist_ok=True)
+    val_dst.mkdir(parents=True, exist_ok=True)
+
+    # --- 1) Osztályok uniója minden train shardból ---
+    all_wnids = _gather_union_wnids(train_shards)
+    if len(all_wnids) < 100:
+        print(f"⚠️  Figyelem: csak {len(all_wnids)} osztályt találtam a train shardokban.")
+    if len(all_wnids) > 100:
+        print(f"⚠️  Figyelem: {len(all_wnids)} osztályt találtam; 100-ra vágom determinista módon.")
+        all_wnids = sorted(all_wnids)[:100]
+    ref_classes = all_wnids  # determinista lista
+    ref_set = set(ref_classes)
+
+    # --- 2) Train tükrözés a ref osztályokra ---
+    n_train, mirrored_train = _mirror_split_from_class_dirs(train_shards, train_dst, class_dirs_ref=ref_classes)
+    missing_train = ref_set - mirrored_train
+    if missing_train:
+        print(f"⚠️  Néhány ref osztályhoz nem találtam képet a train shardokban: {sorted(missing_train)[:5]} ... (+{max(0, len(missing_train)-5)} további)")
+
+    # --- 3) Val tükrözés ---
+    if all(_has_class_subdirs(s) for s in val_shards):
+        n_val, _ = _mirror_split_from_class_dirs(val_shards, val_dst, class_dirs_ref=ref_classes)
+    elif labels_json:
+        if len(val_shards) != 1:
+            raise RuntimeError("Labels.json mellett egyetlen val shardot várok (val.X).")
+        n_val = _mirror_val_with_labels(val_shards[0], labels_json, val_dst, allowed_wnids=ref_set)
+    else:
+        raise RuntimeError("A val shardban nincsenek osztálymappák, és Labels.json sincs — nem tudok kiosztani.")
+
+    print(f"✅ ImageNet-100 build: {target_root}")
+    print(f"   - train képek: {n_train:,}")
+    print(f"   - val   képek: {n_val:,}")
+    return str(target_root)
+
+def build_val_dataset_from_dirs(val_dir, class_names, image_size, batch_size):
+    filepaths, labels = [], []
+    for idx, cls in enumerate(class_names):
+        cls_dir = os.path.join(val_dir, cls)
+        if not os.path.isdir(cls_dir):
+            continue
+        for p in glob.glob(os.path.join(cls_dir, "*")):
+            ext = os.path.splitext(p)[1].lower()
+            if ext in _VALID_EXTS and os.path.isfile(p):
+                filepaths.append(p)
+                labels.append(idx)
+    return build_dataset_from_files(
+        filepaths, labels,
+        image_size=image_size,
+        batch_size=batch_size,
+        shuffle=False  # val-nál ne shuffle-ölj
+    )

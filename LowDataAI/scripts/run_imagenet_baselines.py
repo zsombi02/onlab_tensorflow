@@ -26,6 +26,12 @@ def run_series(
         input_shape = (64, 64, 3);
         num_classes = 200
         base_name = "tiny_imagenet"
+
+    elif dataset == "imnet100_kaggle":
+        input_shape = (224, 224, 3)
+        num_classes = 100
+        base_name = "imagenet100_kaggle"
+
     else:
         input_shape = (224, 224, 3);
         num_classes = 100
@@ -47,10 +53,31 @@ def run_series(
                 return tiny_budget(p, batch_size=bs, image_size=isize, seed=seed)
 
             return _loader
-    else:
+
+    elif dataset == "imnet100_kaggle":
+
         def full_loader(**_):
-            from data.imagenet_wrappers import imnet100_full
-            return imnet100_full(batch_size=bs, image_size=isize)
+            from data.imagenet_wrappers import imnet100_kaggle_full
+            return imnet100_kaggle_full(batch_size=bs, image_size=isize)
+
+        def budget_loader(p):
+            def _loader(**_):
+                from data.imagenet_wrappers import imnet100_kaggle_budget
+                return imnet100_kaggle_budget(p, batch_size=bs, image_size=isize, seed=seed)
+
+            return _loader
+
+    # else:
+    #     def full_loader(**_):
+    #         from data.imagenet_wrappers import imnet100_full
+    #         return imnet100_full(batch_size=bs, image_size=isize)
+    #
+    #     def budget_loader(p):
+    #         def _loader(**_):
+    #             from data.imagenet_wrappers import tiny_budget
+    #             return tiny_budget(p, batch_size=bs, image_size=isize, seed=seed)
+    #
+    #         return _loader
 
         # def budget_loader(p):
         #     def _loader(**_):
@@ -70,14 +97,14 @@ def run_series(
         model_name = f"{base_name}_from_scratch_{tag}"
 
         # --- Train ---
-        tp = TrainingPipeline(
-            model_cls=lambda: SimpleImagenetCNN(input_shape=input_shape, num_classes=num_classes, model_name=model_name),
-            model_name=model_name,
-            epochs=epochs,
-            dataset_loader=budget_loader(p),   # <- (train_sub, val) a loader visszatérési értéke
-            callbacks=[reduce_lr, early_stopping]
-        )
-        tp.run()
+        # tp = TrainingPipeline(
+        #     model_cls=lambda: SimpleImagenetCNN(input_shape=input_shape, num_classes=num_classes, model_name=model_name),
+        #     model_name=model_name,
+        #     epochs=epochs,
+        #     dataset_loader=budget_loader(p),   # <- (train_sub, val) a loader visszatérési értéke
+        #     callbacks=[reduce_lr, early_stopping]
+        # )
+        # tp.run()
 
         # --- Validate (Top1, Macro-F1, ECE + cm/report mentés) ---
         vp = ValidationPipeline(
@@ -89,8 +116,6 @@ def run_series(
 
 if __name__ == "__main__":
     # Tiny-ImageNet sorozat:
-    run_series(dataset="tiny", budgets=(0.10, 0.20, 0.30, 0.50), epochs=75, batch_size=64)
+    run_series(dataset="imnet100_kaggle", budgets=(0.10, 0.20, 0.30, 0.50, 1), epochs=50, batch_size=16)
     # run_series(dataset="tiny", budgets=(0.50, 0.6), epochs=50, batch_size=64)
 
-    # Ha szeretnéd az ImageNet-100-at is:
-    # run_series(dataset="imnet100", budgets=(0.10, 0.20, 0.30, 0.50), epochs=50, batch_size=64)
