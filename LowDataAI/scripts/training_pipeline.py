@@ -3,17 +3,25 @@ import os
 import tensorflow as tf
 
 from models import BaseModel
-from utils.data_utils import dataset_basic_statistics
+from utils.data_utils import dataset_basic_statistics, preview_random_samples
 from utils.train_utils import plot_training_history, save_training_history, save_model_architecture_plot
+
+LABELS_JSON_PATH = r"C:\Users\Zsombor\Documents\onlab2\onlab_tensorflow\LowDataAI\data\imagenet_subsets\imagenet-100\Labels.json"
 
 RESULTS_DIR = "../results/"
 MODEL_DIR = "../models/saved_models/"
 ARCH_DIR = os.path.join(RESULTS_DIR, "architecture")
 CM_DIR = os.path.join(RESULTS_DIR, "confusion_matrixes")
+PREV_DIR = os.path.join(RESULTS_DIR, "previews")               # <-- ÚJ
+
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(ARCH_DIR, exist_ok=True)
 os.makedirs(CM_DIR, exist_ok=True)
+os.makedirs(PREV_DIR, exist_ok=True)                            # <-- ÚJ
+os.makedirs(PREV_DIR, exist_ok=True)
+
+
 
 class TrainingPipeline:
     def __init__(self, model_cls: type[BaseModel], model_name="cnn_model", epochs=10, dataset_loader=None, callbacks=None):
@@ -32,6 +40,13 @@ class TrainingPipeline:
         self.train_ds, self.test_ds = self.dataset_loader()
         dataset_basic_statistics(self.train_ds)
         # plot_random_images(self.train_ds)
+        # --- PREVIEW: random 3-5 kép mentése/kiírása (augment NINCS) ---
+        try:
+            preview_path = os.path.join(PREV_DIR, f"{self.model_name}.png")
+            # class_names itt nem áll rendelkezésre -> None, ilyenkor indexet írunk címkének
+            preview_random_samples(self.train_ds, labels_json_path=LABELS_JSON_PATH, out_path=preview_path, n=5, seed=42)
+        except Exception as e:
+            print(f"[preview] Figyelem: a preview nem sikerült: {e}")
 
     def build_model(self):
         print(f"🧠 Building model: {self.model_name}")

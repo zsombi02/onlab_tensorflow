@@ -1,107 +1,72 @@
 # data/imagenet.py
-from utils.imagenet_utils import load_from_directory, per_class_equal_subset, ensure_tiny_imagenet, \
-    ensure_imagenet100_root, per_class_file_subset, build_dataset_from_files, ensure_imagenet100_from_kaggle
 import os
 
+from utils.imagenet_data_utils import (
+    ensure_imagenet100_root, ensure_imagenet100_from_kaggle,
+    build_class_index_with_labels_json, build_dataset_from_files, per_class_file_subset,
+)
+
 DATA_ROOT = "../data/imagenet_subsets"
-
-def load_tiny_imagenet(batch_size=64, image_size=(64,64)):
-    root = os.path.join(DATA_ROOT, "tiny-imagenet-200")
-    # 👇 auto letöltés + val/ reorganize
-    ensure_tiny_imagenet(DATA_ROOT)
-    train_ds, val_ds, test_ds, class_names, num_classes = load_from_directory(
-        root, image_size=image_size, batch_size=batch_size, validation_split=None
-    )
-    return train_ds, val_ds, num_classes
-
-# def load_tiny_imagenet_budget(pct=0.1, batch_size=64, image_size=(64,64), seed=42):
-#     train_full, val_ds, num_classes = load_tiny_imagenet(batch_size=batch_size, image_size=image_size)
-#     train_sub = per_class_equal_subset(train_full, num_classes, fraction=pct, seed=seed, batch_size=batch_size)
-#     return train_sub, val_ds
-
-def load_tiny_imagenet_budget(pct=0.1, batch_size=64, image_size=(64,64), seed=42):
-    root = os.path.join(DATA_ROOT, "tiny-imagenet-200")
-    ensure_tiny_imagenet(DATA_ROOT)
-    train_dir = os.path.join(root, "train")
-
-    # class_names fix: train alapján
-    class_names = sorted([
-        d for d in os.listdir(train_dir)
-        if os.path.isdir(os.path.join(train_dir, d))
-    ])
-    num_classes = len(class_names)
-
-    # fájllista + címkék mintavételezése
-    filepaths, labels = per_class_file_subset(train_dir, class_names, fraction=pct, seed=seed)
-
-    # subset dataset
-    train_sub = build_dataset_from_files(filepaths, labels,
-                                         image_size=image_size,
-                                         batch_size=batch_size,
-                                         shuffle=True)
-
-    # validáció ugyanúgy
-    _, val_ds, _, _, _ = load_from_directory(root,
-                                             image_size=image_size,
-                                             batch_size=batch_size,
-                                             validation_split=None)
-
-    return train_sub, val_ds
-
-def load_imagenet100(batch_size=64, image_size=(224,224)):
-    root = os.path.join(DATA_ROOT, "imagenet-100")
-    ensure_imagenet100_root(DATA_ROOT)  # itt nincs auto-download
-    train_ds, val_ds, test_ds, class_names, num_classes = load_from_directory(
-        root, image_size=image_size, batch_size=batch_size, validation_split=None
-    )
-    return train_ds, val_ds, num_classes
-
-
 KAGGLE_TARGET_PARENT = "../data/imagenet_subsets"
 
-def load_imagenet100_kaggle(batch_size=64, image_size=(224,224)):
-    root = ensure_imagenet100_from_kaggle(KAGGLE_TARGET_PARENT)  # letölt + kiépít
-    ensure_imagenet100_root(KAGGLE_TARGET_PARENT)                # ellenőrzés
+def quick_label_check(paths, labels, wnid_to_idx, n=50):
+    import random, os
+    sample = random.sample(list(zip(paths, labels)), k=min(n, len(paths)))
+    for p, y in sample:
+        wnid = os.path.basename(os.path.dirname(p))
+        assert wnid_to_idx[wnid] == y, f"Label mismatch: {p} -> {wnid_to_idx[wnid]} != {y}"
 
-    train_ds, val_ds, test_ds, class_names, num_classes = load_from_directory(
-        root, image_size=image_size, batch_size=batch_size, validation_split=None
-    )
-    return train_ds, val_ds, num_classes
 
-def load_imagenet100_kaggle_budget(pct=0.1, batch_size=64, image_size=(224, 224), seed=42):
-    """
-    ImageNet-100 (Kaggle) budget loader: a train-ből osztályonként ~pct arányt mintáz,
-    a val teljes marad. Ugyanaz a preprocess/batch/prefetch cső, mint a full loadernél.
-    """
-    # 1) biztosítsuk, hogy le legyen töltve és fel legyen építve a célstruktúra
+def load_imagenet100_kaggle_budget(pct=0.1, batch_size=64, image_size=(224,224), seed=42):
+    root = ensure_imagenet100_from_kaggle(KAGGLE_TARGET_PARENT)
+    ensure_imagenet100_root(KAGGLE_TARGET_PARENT)
+    labels_json_path = os.path.join(root, "Labels.json")
+    class_names, wnid_to_idx, _, _ = build_class_index_with_labels_json(root, labels_json_path)
+
+    if not os.path.isfile(labels_json_path):
+        labels_json_path = os.path.join(os.path.dirname(root), "Labels.json")
+    class_names, *_ = build_class_index_with_labels_json(root, labels_json_path)
+    train_dir = os.path.join(root, "train")
+    val_dir = os.path.join(root, "val")
+    filepaths, labels = per_class_file_subset(train_dir, class_names, fraction=float(pct), seed=seed)
+    val_filepaths, val_labels = per_class_file_subset(val_dir, class_names, fraction=1.0, seed=seed)
+    quick_label_check(filepaths, labels, wnid_to_idx, n=200)
+    quick_label_check(val_filepaths,   val_labels,   wnid_to_idx, n=200)
+    train_sub = build_dataset_from_files(filepaths, labels, image_size=image_size, batch_size=batch_size, shuffle=True, augment=True)
+    val_sub = build_dataset_from_files(val_filepaths, val_labels, image_size=image_size, batch_size=batch_size, shuffle=False, augment=False)
+
+
+    return train_sub, val_sub
+
+
+def load_imagenet50_from_imagenet100(pct=0.1, batch_size=64, image_size=(224, 224), seed=42):
     root = ensure_imagenet100_from_kaggle(KAGGLE_TARGET_PARENT)
     ensure_imagenet100_root(KAGGLE_TARGET_PARENT)
 
+    labels_json_path = os.path.join(root, "Labels.json")
+    if not os.path.isfile(labels_json_path):
+        labels_json_path = os.path.join(os.path.dirname(root), "Labels.json")
+
+    full_class_names, wnid_to_idx, _, _ = build_class_index_with_labels_json(root, labels_json_path)
+
+    TARGET_NUM_CLASSES = 50
+    if len(full_class_names) < TARGET_NUM_CLASSES:
+        raise ValueError(
+            f"Csak {len(full_class_names)} osztályt találtam. Nem tudok {TARGET_NUM_CLASSES}-t kiválasztani.")
+
+    class_names_50 = full_class_names[:TARGET_NUM_CLASSES]
+    print(f"✅ ImageNet-100 alapú ImageNet-50 betöltve. WNID tartomány: {class_names_50[0]} - {class_names_50[-1]}")
+
     train_dir = os.path.join(root, "train")
+    val_dir = os.path.join(root, "val")
 
-    # 2) osztálylista a train alapján (FONTOS: ugyanebben a sorrendben tanul/értékel)
-    class_names = sorted([
-        d for d in os.listdir(train_dir)
-        if os.path.isdir(os.path.join(train_dir, d))
-    ])
-    num_classes = len(class_names)
+    filepaths, labels = per_class_file_subset(train_dir, class_names_50, fraction=float(pct), seed=seed)
 
-    # 3) fájllistás mintavételezés (duplikáció-védelem benne van)
-    filepaths, labels = per_class_file_subset(
-        train_dir, class_names, fraction=float(pct), seed=seed
-    )
+    val_filepaths, val_labels = per_class_file_subset(val_dir, class_names_50, fraction=1.0, seed=seed)
 
-    # 4) subset dataset ugyanazzal a csővel (decode_image -> _standard_preprocess -> _build_ds)
-    train_sub = build_dataset_from_files(
-        filepaths, labels,
-        image_size=image_size,
-        batch_size=batch_size,
-        shuffle=True
-    )
+    train_sub = build_dataset_from_files(filepaths, labels, image_size=image_size, batch_size=batch_size, shuffle=True,
+                                         augment=True)
+    val_sub = build_dataset_from_files(val_filepaths, val_labels, image_size=image_size, batch_size=batch_size,
+                                       shuffle=False, augment=False)
 
-    # 5) validation ugyanúgy, mint a full loadernél
-    _, val_ds, _, _, _ = load_from_directory(
-        root, image_size=image_size, batch_size=batch_size, validation_split=None
-    )
-
-    return train_sub, val_ds
+    return train_sub, val_sub

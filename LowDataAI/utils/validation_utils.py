@@ -115,8 +115,8 @@ def save_overall_metrics(test_acc, test_loss, model_name, dataset_name="default"
         "test_accuracy": float(test_acc),
         "test_loss": float(test_loss)
     }
-    if extra:
-        new_entry.update(extra)
+    # if extra:
+    #     new_entry.update(extra)
 
     if os.path.exists(METRICS_PATH):
         with open(METRICS_PATH, 'r') as f:

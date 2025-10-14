@@ -1,230 +1,101 @@
 # utils/imagenet_utils.py
-import glob
-import json
-import os
-import random
-import shutil
-import zipfile
-from pathlib import Path
 
+
+from __future__ import annotations
 import numpy as np
 import tensorflow as tf
-import kagglehub
 
 AUTOTUNE = tf.data.AUTOTUNE
 
-def _standard_preprocess(image, label, image_size=(64, 64)):
-    image = tf.image.resize(image, image_size, method=tf.image.ResizeMethod.BICUBIC)
-    image = tf.image.convert_image_dtype(image, tf.float32)  # [0,1]
-    return image, label
 
-def _augment(image, label):
-    image = tf.image.random_flip_left_right(image)
-    image = tf.image.random_brightness(image, 0.1)
-    image = tf.image.random_contrast(image, 0.9, 1.1)
-    return image, label
-
-def _build_ds(ds, image_size, batch_size, shuffle=True, augment=False,
-              shuffle_buffer=128, prefetch_size=tf.data.AUTOTUNE):
-    # 1) standard preprocess
-    ds = ds.map(lambda x, y: _standard_preprocess(x, y, image_size=image_size),
-                num_parallel_calls=AUTOTUNE)
-    # 2) BATCH ELŐTT NEM SHUFFLE-zunk (vagy nagyon kicsi bufferrel)
-    ds = ds.batch(batch_size)
-
-    # 3) shuffle BATCH UTÁN (kicsi bufferrel is elég)
-    if shuffle:
-        ds = ds.shuffle(shuffle_buffer, reshuffle_each_iteration=True)
-
-    if augment:
-        ds = ds.map(_augment, num_parallel_calls=AUTOTUNE)
-
-    ds = ds.prefetch(prefetch_size)
-    return ds
-
-
-def load_from_directory(
-    root_dir: str,
-    image_size=(64, 64),
-    batch_size=32,
-    validation_split=None,
-    seed=42,
-    subset_for_train="training",
-    follow_links=False
-):
-    train_dir = os.path.join(root_dir, "train")
-    val_dir = os.path.join(root_dir, "val")
-    # 1) Osztályok csak a train alapján:
-    if not os.path.isdir(train_dir):
-        raise FileNotFoundError(f"Missing train dir: {train_dir}")
-
-    class_names = sorted([
-        d for d in os.listdir(train_dir)
-        if os.path.isdir(os.path.join(train_dir, d))
-    ])
-    num_classes = len(class_names)
-
-    def make_ds(directory, subset=None, use_split=False):
-        if not os.path.isdir(directory):
-            return None
-        ds = tf.keras.utils.image_dataset_from_directory(
-            directory,
-            label_mode="int",
-            image_size=image_size,
-            batch_size=None,        # előbb map, aztán batch
-            shuffle=True,
-            seed=seed,
-            validation_split=validation_split if use_split else None,
-            subset=subset if use_split else None,
-            follow_links=follow_links,
-            class_names=class_names # <-- fix: train mapping mindenhol
-        )
-        ds = _build_ds(ds, image_size=image_size, batch_size=batch_size, shuffle=True, augment=False)
-        return ds
-
-    if validation_split:
-        # Trainből vágjuk a val-t → mapping automatikusan egységes
-        train_ds = make_ds(train_dir, subset=subset_for_train, use_split=True)
-        val_ds   = make_ds(train_dir, subset="validation", use_split=True)
-    else:
-        train_ds = make_ds(train_dir)
-        val_ds   = make_ds(val_dir)
-
-    # Tiny-ImageNet "test" nem class-mappás → hagyjuk None-on
-    test_ds = None
-
-    if train_ds is None or val_ds is None:
-        raise FileNotFoundError(
-            f"Expected train/val folders under {root_dir} with class subdirs. "
-            f"Got train_ds={train_ds is not None}, val_ds={val_ds is not None}."
-        )
-
-    return train_ds, val_ds, test_ds, class_names, num_classes
-
-
-def reorganize_tiny_imagenet_val(val_dir: str, annotations_file: str):
+def extract_numpy(ds: tf.data.Dataset) -> tuple[np.ndarray, np.ndarray]:
     """
-    Tiny-ImageNet 'val' mappa egybe van, ezt klasszokra bontjuk.
-    - val_dir: .../val/images
-    - annotations_file: .../val/val_annotations.txt
-    Csak egyszer kell lefuttatni; készít class alkönyvtárakat és odamozgatja a képeket.
+    Teljes (image, label) tf.data → (X, y) numpy.
+    Figyelem: memóriát igényel, nagy halmazon csak óvatosan!
+    - X alakja: [N, H, W, C] float32 (ha előtte már normalizálva volt)
+    - y alakja: [N] int
     """
-    import shutil
-    with open(annotations_file, "r") as f:
-        lines = [l.strip().split() for l in f.readlines()]
-    mapping = {img: cls for (img, cls, *_rest) in lines}
-
-    images_dir = val_dir
-    parent = os.path.dirname(images_dir)  # .../val
-    for img, cls in mapping.items():
-        cls_dir = os.path.join(parent, cls)
-        os.makedirs(cls_dir, exist_ok=True)
-        src = os.path.join(images_dir, img)
-        dst = os.path.join(cls_dir, img)
-        if os.path.exists(src) and not os.path.exists(dst):
-            shutil.move(src, dst)
-
-
-def extract_numpy(ds):
-    """Teljes ds → (X, y) numpy (vigyázat: memóriás, de label-budget kicsi)."""
-    X, y = [], []
-    for batch in ds:
-        images, labels = batch
-        X.append(images.numpy())
-        y.append(labels.numpy())
-    X = np.concatenate(X, axis=0)
-    y = np.concatenate(y, axis=0)
+    X_parts, y_parts = [], []
+    for images, labels in ds:
+        X_parts.append(images.numpy())
+        y_parts.append(labels.numpy())
+    X = np.concatenate(X_parts, axis=0) if X_parts else np.empty((0,))
+    y = np.concatenate(y_parts, axis=0) if y_parts else np.empty((0,), dtype=np.int32)
     return X, y
 
 
-def per_class_equal_subset(train_ds, num_classes, fraction=0.1, seed=42, batch_size=32):
+def per_class_equal_subset(
+    train_ds: tf.data.Dataset,
+    num_classes: int,
+    fraction: float = 0.1,
+    seed: int = 42,
+    batch_size: int = 32,
+) -> tf.data.Dataset:
     """
-    Nem streamelünk: materializálunk, de:
-      - előbb kiválasztjuk az indexeket,
-      - a képeket uint8-ban tároljuk (4× kisebb),
-      - a from_tensor_slices kifejezetten CPU-ra kerül.
+    Egyenletes mintavétel minden osztályból a 'fraction' arány szerint.
+    Megközelítés:
+      1) materializálás numpy-ba (gyors, de memóriás),
+      2) per-osztály indexekből mintavétel,
+      3) képek uint8 tömörítése → CPU-n from_tensor_slices → futás közben visszaskálázás.
+    Így elkerülhető a nagy _EagerConst allokáció GPU-n.
+
+    Visszatér: tf.data.Dataset (shuffle → batch → prefetch)
     """
     rng = np.random.default_rng(seed)
 
-    # 1) Materializálás numpy-ba (most még float32 [0,1])
+    # 1) Materializálás numpy-ba
     X, y = extract_numpy(train_ds.unbatch().batch(1024))
+
+    if X.size == 0:
+        raise ValueError("per_class_equal_subset: üres train_ds érkezett.")
 
     # 2) Indexválasztás osztályonként
     total = X.shape[0]
-    target = int(total * fraction)
-    per_class_target = max(1, target // num_classes)
+    target = max(1, int(total * float(fraction)))
+    per_class_target = max(1, target // max(1, num_classes))
+
     idx_by_cls = {c: np.where(y == c)[0] for c in range(num_classes)}
     chosen_idx = []
     for c in range(num_classes):
-        pool = idx_by_cls[c]
-        n = min(per_class_target, len(pool))
-        if n > 0:
-            chosen_idx.extend(rng.choice(pool, n, replace=False))
+        pool = idx_by_cls.get(c, np.array([], dtype=int))
+        if pool.size == 0:
+            continue
+        n = min(per_class_target, pool.size)
+        chosen_idx.extend(rng.choice(pool, n, replace=False))
     rng.shuffle(chosen_idx)
 
-    # 3) Vágás és TÖMÖRÍTÉS: float32 → uint8 (0..255)
+    # 3) Vágás + tömörítés (float32 [0,1] → uint8 [0..255])
     Xs = X[chosen_idx]
     ys = y[chosen_idx]
-    # ha X float32 [0,1], akkor:
     Xs = (np.clip(Xs, 0.0, 1.0) * 255.0).astype(np.uint8)
 
-    # 4) Dataset: CPU-n hozzuk létre, hogy ne menjen fel 2.3 GiB _EagerConst a GPU-ra
+    # 4) CPU-n dataset építés, futás közbeni visszaskálázás
     with tf.device("/CPU:0"):
         ds = tf.data.Dataset.from_tensor_slices((Xs, ys))
 
-    # 5) Visszaskálázás csak itt, apró batch-ekben → GPU-ra már kicsi szeletek mennek
     def _to_float32(image, label):
         image = tf.cast(image, tf.float32) / 255.0
         return image, label
 
-    ds = ds.map(_to_float32, num_parallel_calls=AUTOTUNE)
-    ds = ds.shuffle(1024, reshuffle_each_iteration=True).batch(batch_size).prefetch(AUTOTUNE)
+    ds = (
+        ds.map(_to_float32, num_parallel_calls=AUTOTUNE)
+          .shuffle(1024, reshuffle_each_iteration=True)
+          .batch(batch_size)
+          .prefetch(AUTOTUNE)
+    )
     return ds
 
-# #TODO ez nem jó nagyokra
-# def per_class_equal_subset(train_ds, num_classes, fraction=0.1, seed=42):
-#     """
-#     Egyenlő számú mintát vesz minden osztályból a kívánt frakciónak megfelelően.
-#     - train_ds: batchelt tf.data
-#     - fraction: pl. 0.1, 0.2, 0.3, 0.5
-#     """
-#     rng = np.random.default_rng(seed)
-#     X, y = extract_numpy(train_ds.unbatch().batch(1024))  # gyorsabb aggregálás
-#     # elemszám becslés
-#     total = X.shape[0]
-#     target = int(total * fraction)
-#     per_class_target = max(1, target // num_classes)
-#
-#     idx_by_cls = {c: np.where(y == c)[0] for c in range(num_classes)}
-#     chosen_idx = []
-#     for c in range(num_classes):
-#         pool = idx_by_cls[c]
-#         n = min(per_class_target, len(pool))
-#         chosen_idx.extend(rng.choice(pool, n, replace=False))
-#     rng.shuffle(chosen_idx)
-#     Xs = X[chosen_idx]
-#     ys = y[chosen_idx]
-#
-#     ds = tf.data.Dataset.from_tensor_slices((Xs, ys)).shuffle(4096, seed=seed).batch(32).prefetch(AUTOTUNE)
-#     return ds
 
-# def per_class_equal_subset(train_ds, num_classes, fraction=0.1, seed=42, batch_size=32):
-#     # Backward-compat: csak továbbhívjuk a streames verziót
-#     return balanced_subset_from_stream(
-#         train_ds, num_classes, fraction=fraction, batch_size=batch_size, seed=seed
-#     )
+def compute_ece(
+    probs: np.ndarray,
+    labels: np.ndarray,
+    n_bins: int = 15
+) -> float:
+    if probs.ndim != 2:
+        raise ValueError(f"compute_ece: probs dim != 2 (got {probs.shape})")
+    if labels.ndim != 1 or labels.shape[0] != probs.shape[0]:
+        raise ValueError("compute_ece: labels alakja [N] és N-nek egyeznie kell a probs első dimenziójával.")
 
-
-def label_budget_presets(train_ds, num_classes, presets=(0.1, 0.2, 0.3, 0.5), seed=42):
-    """Visszaad egy dictet frakció → subset_ds."""
-    return {p: per_class_equal_subset(train_ds, num_classes, p, seed=seed) for p in presets}
-
-
-def compute_ece(probs: np.ndarray, labels: np.ndarray, n_bins: int = 15):
-    """
-    Expected Calibration Error (softmax probs + int labels).
-    probs: [N, C], labels: [N]
-    """
     confidences = probs.max(axis=1)
     predictions = probs.argmax(axis=1)
     accuracies = (predictions == labels).astype(np.float32)
@@ -239,348 +110,5 @@ def compute_ece(probs: np.ndarray, labels: np.ndarray, n_bins: int = 15):
         bin_acc = accuracies[mask].mean()
         bin_conf = confidences[mask].mean()
         ece += (mask.mean()) * abs(bin_conf - bin_acc)
+
     return float(ece)
-
-
-TINY_IMAGENET_URL = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
-
-def ensure_tiny_imagenet(root_dir: str):
-    """
-    Letölti és kicsomagolja a Tiny-ImageNet-200-at a root_dir-be, ha még nincs ott.
-    A végén gondoskodik róla, hogy a 'val' mappa class-onként legyen szétszedve.
-    Elrendezés: <root_dir>/tiny-imagenet-200/{train,val,test}
-    """
-    root = Path(root_dir)
-    target = root / "tiny-imagenet-200"
-    train_dir = target / "train"
-    val_dir = target / "val"
-    images_dir = val_dir / "images"
-    annotations = val_dir / "val_annotations.txt"
-
-    if train_dir.is_dir() and val_dir.is_dir() and not images_dir.is_dir():
-        # már korábban reorganize-olva
-        return
-
-    if not target.is_dir():
-        root.mkdir(parents=True, exist_ok=True)
-        print(f"⬇️  Downloading Tiny-ImageNet to {root} ...")
-        zip_path = tf.keras.utils.get_file(
-            fname="tiny-imagenet-200.zip",
-            origin=TINY_IMAGENET_URL,
-            cache_dir=str(root),
-            cache_subdir=".",
-            extract=False,
-        )
-        print("📦 Extracting...")
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            zf.extractall(str(root))
-
-    # Ha még egyben van a val/images, szervezzük szét
-    if images_dir.is_dir() and annotations.is_file():
-        print("🗂️  Reorganizing Tiny-ImageNet val/ into class folders...")
-        reorganize_tiny_imagenet_val(str(images_dir), str(annotations))
-        # az images mappa kiürül, ez oké
-
-    images_dir_path = Path(images_dir)
-    if images_dir_path.exists():
-        print("🧹 Removing empty val/images folder to avoid extra class.")
-        shutil.rmtree(images_dir_path, ignore_errors=True)
-
-def ensure_imagenet100_root(root_dir: str):
-    """
-    Csak ellenőriz: felhasználó által előkészített ImageNet-100 folder layout kell.
-    Elvárt: <root_dir>/imagenet-100/{train,val,(test)}/<class>/*.jpg
-    """
-    target = Path(root_dir) / "imagenet-100"
-    if not (target / "train").is_dir() or not (target / "val").is_dir():
-        raise FileNotFoundError(
-            f"ImageNet-100 not found under {target}. "
-            "Create folders train/val/(test) with class subdirs."
-        )
-
-def balanced_subset_from_stream(ds, num_classes, fraction, batch_size, seed=1337):
-    # Elemenkénti stream a filterhez (nálad _build_ds már batchel)
-    ds = ds.unbatch()
-
-    # Tiny-ImageNet ~500 kép/osztály → ebből vesszük a frakciót
-    per_class_k = max(1, int(round(500 * float(fraction))))
-
-    # Stabil lezárás: külső függvénnyel gyártjuk a predikátumot
-    def make_class_filter(cls_id: int):
-        cls_t = tf.constant(cls_id, dtype=tf.int32)
-        return lambda x, y: tf.equal(y, cls_t)  # ha one-hot lenne: tf.equal(tf.argmax(y, -1), cls_t)
-
-    # Osztályonként kiválasztunk k mintát, majd összefűzzük
-    subs = []
-    for cls in range(num_classes):
-        sub_c = ds.filter(make_class_filter(cls)).take(per_class_k)
-        subs.append(sub_c)
-
-    subset = subs[0]
-    for s in subs[1:]:
-        subset = subset.concatenate(s)
-
-    # Shuffle → batch → prefetch
-    subset = subset.shuffle(4096, seed=seed, reshuffle_each_iteration=False)
-    subset = subset.batch(batch_size, drop_remainder=False).prefetch(AUTOTUNE)
-    return subset
-
-_VALID_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
-
-def per_class_file_subset(train_dir, class_names, fraction=0.1, seed=42):
-    """
-    train/<class>/images/ alól választ képeket. Windows-on a glob case-insensitive,
-    ezért előbb mindent összeszedünk, majd .lower()-rel EXT alapján szűrünk és DEDUP-olunk.
-    """
-    rng = random.Random(seed)
-    filepaths, labels = [], []
-
-    for cls_idx, cls_name in enumerate(class_names):
-        # cls_img_dir = os.path.join(train_dir, cls_name, "images")
-        cls_img_dir = os.path.join(train_dir, cls_name)
-        if not os.path.isdir(cls_img_dir):
-            continue
-
-        # 1) összes fájl egyszer
-        all_paths = glob.glob(os.path.join(cls_img_dir, "*"))
-
-        # 2) szűrés érvényes képekre + dedup
-        uniq = {}
-        for p in all_paths:
-            if not os.path.isfile(p):
-                continue
-            ext = os.path.splitext(p)[1].lower()
-            if ext in _VALID_EXTS:
-                # normcase + lower kulccsal dedup (Windowsnál fontos)
-                key = os.path.normcase(p).lower()
-                uniq[key] = p
-        img_files = list(uniq.values())
-
-        if not img_files:
-            continue
-
-        # 3) per-class mintaszám
-        n_select = max(1, int(len(img_files) * float(fraction)))
-        chosen = rng.sample(img_files, n_select)
-
-        filepaths.extend(chosen)
-        labels.extend([cls_idx] * len(chosen))
-
-    if not filepaths:
-        raise RuntimeError("No images found under train/<class>/images with valid extensions.")
-
-    return filepaths, labels
-
-def build_dataset_from_files(filepaths, labels, image_size, batch_size, shuffle=True):
-    ds = tf.data.Dataset.from_tensor_slices((filepaths, labels))
-
-    def _load_img(path, label):
-        img_bytes = tf.io.read_file(path)
-        # Formátum-agnosztikus (JPEG/PNG/GIF/BMP), animált gifet egy képkockára lapít
-        img = tf.image.decode_image(img_bytes, channels=3, expand_animations=False)
-        img.set_shape([None, None, 3])  # statikus alak a későbbi resize-hoz
-        return img, label
-
-    ds = ds.map(_load_img, num_parallel_calls=AUTOTUNE)
-    ds = _build_ds(ds, image_size=image_size, batch_size=batch_size, shuffle=shuffle, augment=False)
-    return ds
-
-
-def _safe_link_or_copy(src: Path, dst: Path):
-    if dst.exists():
-        return
-    try:
-        os.link(src, dst)         # hardlink (gyors, nem foglal plusz helyet)
-    except Exception:
-        shutil.copy2(src, dst)    # fallback: másolás
-
-def _has_class_subdirs(p: Path) -> bool:
-    return p.is_dir() and any(d.is_dir() for d in p.iterdir())
-
-def _list_image_files(p: Path):
-    exts = ("*.jpg", "*.jpeg", "*.png", "*.bmp")
-    files = []
-    for e in exts:
-        files.extend(glob.glob(str(p / e)))
-    return [Path(f) for f in files]
-
-def _discover_kaggle_shards(root: Path):
-    """
-    Visszaadja: (train_shards, val_shards, labels_json or None)
-    - train_shards: minden olyan mappa, ami 'train' kezdetű és VAN BENNE legalább egy osztálymappa
-    - val_shards:   minden olyan mappa, ami 'val' kezdetű (lehet osztálymappás vagy sima képfolder)
-    - labels.json:  ha a gyökérben (vagy alatta) van Labels.json, visszaadjuk az útját
-    """
-    train_shards, val_shards = [], []
-    labels_json = None
-
-    cand = list(root.glob("Labels.json")) + list(root.rglob("Labels.json"))
-    if cand:
-        labels_json = cand[0]
-
-    def _looks_like_class_shard(p: Path) -> bool:
-        return p.is_dir() and any(d.is_dir() for d in p.iterdir())
-
-    for d in root.iterdir():
-        if not d.is_dir():
-            continue
-        name = d.name
-        if name.startswith("train") and _looks_like_class_shard(d):
-            train_shards.append(d)
-        elif name.startswith("val"):  # val lehet sima képfolder is
-            val_shards.append(d)
-
-    if (not train_shards) or (not val_shards):
-        for d in root.iterdir():
-            if d.is_dir():
-                for s in d.iterdir():
-                    if not s.is_dir():
-                        continue
-                    n = s.name
-                    if n.startswith("train") and _looks_like_class_shard(s):
-                        train_shards.append(s)
-                    elif n.startswith("val"):
-                        val_shards.append(s)
-
-    if not train_shards:
-        raise FileNotFoundError("Nem találtam train.* shard mappákat a Kaggle datasetben.")
-    if not val_shards:
-        raise FileNotFoundError("Nem találtam val.* shard mappát a Kaggle datasetben.")
-
-    return sorted(set(train_shards)), sorted(set(val_shards)), labels_json
-
-def _gather_union_wnids(shards: list[Path]) -> list[str]:
-    """Összegyűjti az összes osztály (WNID) nevét minden shardból, determinista, rendezett listában."""
-    wnids = set()
-    for s in shards:
-        for d in s.iterdir():
-            if d.is_dir():
-                wnids.add(d.name)
-    return sorted(wnids)
-
-
-def _mirror_split_from_class_dirs(shards: list[Path], dst_split: Path, class_dirs_ref: list[str]):
-    """
-    Ha class_dirs_ref meg van adva, csak azokat az osztályokat tükrözzük.
-    Visszatér: (képszám, tükrözött_osztályok_set)
-    """
-    dst_split.mkdir(parents=True, exist_ok=True)
-    total = 0
-    mirrored = set()
-    for shard in shards:
-        for cls_dir in sorted([d for d in shard.iterdir() if d.is_dir()]):
-            wnid = cls_dir.name
-            if class_dirs_ref is not None and wnid not in class_dirs_ref:
-                continue
-            tcls = dst_split / wnid
-            tcls.mkdir(parents=True, exist_ok=True)
-            for f in _list_image_files(cls_dir):
-                _safe_link_or_copy(f, tcls / f.name)
-                total += 1
-            mirrored.add(wnid)
-    return total, mirrored
-
-
-def _mirror_val_with_labels(val_dir: Path, labels_json: Path, dst_split: Path, allowed_wnids: set[str]):
-    """
-    Labels.json alapján szétosztjuk a val képeket WNID mappákba.
-    Ha allowed_wnids meg van adva, csak azokra azonosítunk.
-    """
-    with open(labels_json, "r", encoding="utf-8") as f:
-        labels = json.load(f)
-
-    mapping = {}
-    if isinstance(labels, dict) and "images" in labels:
-        for item in labels["images"]:
-            fname = (item.get("file") or item.get("filename") or "").split("/")[-1]
-            wnid  = item.get("label") or item.get("wnid")
-            if fname and wnid:
-                mapping[fname] = str(wnid)
-    elif isinstance(labels, dict):
-        mapping = {str(k).split("/")[-1]: str(v) for k, v in labels.items()}
-    else:
-        raise ValueError("Ismeretlen Labels.json formátum.")
-
-    dst_split.mkdir(parents=True, exist_ok=True)
-
-    total = 0
-    for f in _list_image_files(val_dir):
-        wnid = mapping.get(f.name)
-        if not wnid:
-            continue
-        if allowed_wnids is not None and wnid not in allowed_wnids:
-            continue
-        tcls = dst_split / wnid
-        tcls.mkdir(parents=True, exist_ok=True)
-        _safe_link_or_copy(f, tcls / f.name)
-        total += 1
-    return total
-
-def ensure_imagenet100_from_kaggle(target_parent: str) -> str:
-    """
-    Letölt: ambityga/imagenet100 (kagglehub), és felépíti:
-    <target_parent>/imagenet-100/{train,val}/<wnid>/*.JPEG
-    """
-    kaggle_root = Path(kagglehub.dataset_download("ambityga/imagenet100"))
-    print(f"📥 Kaggle letöltés kész: {kaggle_root}")
-
-    train_shards, val_shards, labels_json = _discover_kaggle_shards(kaggle_root)
-    print("🔎 Train shardok:", [s.name for s in train_shards])
-    print("🔎 Val   shardok:", [s.name for s in val_shards])
-    if labels_json:
-        print(f"🔎 Labels.json: {labels_json}")
-
-    target_root = Path(target_parent) / "imagenet-100"
-    train_dst = target_root / "train"
-    val_dst   = target_root / "val"
-    train_dst.mkdir(parents=True, exist_ok=True)
-    val_dst.mkdir(parents=True, exist_ok=True)
-
-    # --- 1) Osztályok uniója minden train shardból ---
-    all_wnids = _gather_union_wnids(train_shards)
-    if len(all_wnids) < 100:
-        print(f"⚠️  Figyelem: csak {len(all_wnids)} osztályt találtam a train shardokban.")
-    if len(all_wnids) > 100:
-        print(f"⚠️  Figyelem: {len(all_wnids)} osztályt találtam; 100-ra vágom determinista módon.")
-        all_wnids = sorted(all_wnids)[:100]
-    ref_classes = all_wnids  # determinista lista
-    ref_set = set(ref_classes)
-
-    # --- 2) Train tükrözés a ref osztályokra ---
-    n_train, mirrored_train = _mirror_split_from_class_dirs(train_shards, train_dst, class_dirs_ref=ref_classes)
-    missing_train = ref_set - mirrored_train
-    if missing_train:
-        print(f"⚠️  Néhány ref osztályhoz nem találtam képet a train shardokban: {sorted(missing_train)[:5]} ... (+{max(0, len(missing_train)-5)} további)")
-
-    # --- 3) Val tükrözés ---
-    if all(_has_class_subdirs(s) for s in val_shards):
-        n_val, _ = _mirror_split_from_class_dirs(val_shards, val_dst, class_dirs_ref=ref_classes)
-    elif labels_json:
-        if len(val_shards) != 1:
-            raise RuntimeError("Labels.json mellett egyetlen val shardot várok (val.X).")
-        n_val = _mirror_val_with_labels(val_shards[0], labels_json, val_dst, allowed_wnids=ref_set)
-    else:
-        raise RuntimeError("A val shardban nincsenek osztálymappák, és Labels.json sincs — nem tudok kiosztani.")
-
-    print(f"✅ ImageNet-100 build: {target_root}")
-    print(f"   - train képek: {n_train:,}")
-    print(f"   - val   képek: {n_val:,}")
-    return str(target_root)
-
-def build_val_dataset_from_dirs(val_dir, class_names, image_size, batch_size):
-    filepaths, labels = [], []
-    for idx, cls in enumerate(class_names):
-        cls_dir = os.path.join(val_dir, cls)
-        if not os.path.isdir(cls_dir):
-            continue
-        for p in glob.glob(os.path.join(cls_dir, "*")):
-            ext = os.path.splitext(p)[1].lower()
-            if ext in _VALID_EXTS and os.path.isfile(p):
-                filepaths.append(p)
-                labels.append(idx)
-    return build_dataset_from_files(
-        filepaths, labels,
-        image_size=image_size,
-        batch_size=batch_size,
-        shuffle=False  # val-nál ne shuffle-ölj
-    )

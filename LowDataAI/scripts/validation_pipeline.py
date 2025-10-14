@@ -4,12 +4,19 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix, classification_report
 
-from data.imagenet_wrappers import tiny_full
-from utils.data_utils import dataset_basic_statistics
+from data.imagenet_wrappers import imnet100_kaggle_budget
+from utils.data_utils import dataset_basic_statistics, preview_random_samples
 from utils.validation_utils import log_basic_evaluation_results, save_confusion_matrix_json, \
     save_classification_report_json, plot_confusion_matrix, plot_classification_report, save_overall_metrics
+LABELS_JSON_PATH = r"C:\Users\Zsombor\Documents\onlab2\onlab_tensorflow\LowDataAI\data\imagenet_subsets\imagenet-100\Labels.json"
 
+RESULTS_DIR = "../results/"
 MODEL_DIR = "../models/saved_models/"
+
+PREV_DIR = os.path.join(RESULTS_DIR, "previews")               # <-- ÚJ
+
+os.makedirs(PREV_DIR, exist_ok=True)
+
 
 class ValidationPipeline:
     def __init__(self, model_name: str, dataset_loader, batch_size: int = 32):
@@ -30,6 +37,13 @@ class ValidationPipeline:
         print(f"📦 Loading dataset using: {self.dataset_loader.__name__}...")
         _, self.test_ds = self.dataset_loader(batch_size=self.batch_size)
         dataset_basic_statistics(self.test_ds)
+        try:
+            preview_path = os.path.join(PREV_DIR, f"{self.model_name}_validate.png")
+            # class_names itt nem áll rendelkezésre -> None, ilyenkor indexet írunk címkének
+            preview_random_samples(self.test_ds, labels_json_path=LABELS_JSON_PATH, out_path=preview_path, n=5,
+                                   seed=42)
+        except Exception as e:
+            print(f"[preview] Figyelem: a preview nem sikerült: {e}")
 
     def evaluate(self):
         test_loss, test_acc = self.model.evaluate(self.test_ds, verbose=2)
@@ -92,7 +106,7 @@ if __name__ == "__main__":
 
     validator = ValidationPipeline(
         model_name="tiny_imagenet_from_scratch_10pct",
-        dataset_loader=tiny_full,
+        dataset_loader=imnet100_kaggle_budget(1.0),
         batch_size=32
     )
     validator.run()

@@ -1,0 +1,623 @@
+{
+    "imagenet100_kaggle_from_scratch_10pct": {
+        "2025-10-02_22-16-44": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.011800000444054604,
+            "test_loss": 5.053922653198242
+        },
+        "2025-10-02_22-18-04": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0118,
+            "test_loss": 0.0,
+            "macro_f1": 0.0013290826920535266,
+            "ece": 0.030683006215840577
+        },
+        "2025-10-03_09-54-45": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.011800000444054604,
+            "test_loss": 5.053922176361084
+        },
+        "2025-10-03_09-56-09": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0118,
+            "test_loss": 0.0,
+            "macro_f1": 0.0013290826920535266,
+            "ece": 0.030683006215840577
+        },
+        "2025-10-03_10-41-31": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.012799999676644802,
+            "test_loss": 5.061924934387207
+        },
+        "2025-10-03_10-42-52": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0128,
+            "test_loss": 0.0,
+            "macro_f1": 0.0015049255170185198,
+            "ece": 0.030318312284350397
+        },
+        "2025-10-03_11-04-42": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.011800000444054604,
+            "test_loss": 5.053921699523926
+        }
+    },
+    "imagenet100_kaggle_from_scratch_20pct": {
+        "2025-10-02_23-47-48": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.011599999852478504,
+            "test_loss": 6.071992874145508
+        },
+        "2025-10-02_23-49-07": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0116,
+            "test_loss": 0.0,
+            "macro_f1": 0.0017206786380062553,
+            "ece": 0.09080895588099956
+        },
+        "2025-10-03_10-44-12": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.011599999852478504,
+            "test_loss": 6.061646938323975
+        }
+    },
+    "imagenet100_kaggle_from_scratch_30pct": {
+        "2025-10-03_01-10-08": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.009200000204145908,
+            "test_loss": 6.236570358276367
+        },
+        "2025-10-03_01-11-28": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0092,
+            "test_loss": 0.0,
+            "macro_f1": 0.0006829630948997008,
+            "ece": 0.13602914154529575
+        }
+    },
+    "imagenet100_kaggle_from_scratch_50pct": {
+        "2025-10-03_02-58-06": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.01119999960064888,
+            "test_loss": 6.879907131195068
+        },
+        "2025-10-03_02-59-26": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0112,
+            "test_loss": 0.0,
+            "macro_f1": 0.0008289793217532109,
+            "ece": 0.24182245558798313
+        }
+    },
+    "imagenet100_kaggle_from_scratch_100pct": {
+        "2025-10-03_06-26-39": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.013000000268220901,
+            "test_loss": 8.732160568237305
+        },
+        "2025-10-03_06-28-00": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.013,
+            "test_loss": 0.0,
+            "macro_f1": 0.0009249737406950723,
+            "ece": 0.4496182954967022
+        }
+    },
+    "imagenet100_kaggle_V2_from_scratch_10pct": {
+        "2025-10-03_13-43-07": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.20100000500679016,
+            "test_loss": 3.3706469535827637
+        },
+        "2025-10-07_17-48-19": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1695999950170517,
+            "test_loss": 3.559281587600708
+        },
+        "2025-10-07_17-49-34": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1696,
+            "test_loss": 0.0,
+            "macro_f1": 0.145321982566123,
+            "ece": 0.07311725056767464
+        }
+    },
+    "imagenet100_kaggle_V2_from_scratch_20pct": {
+        "2025-10-06_18-08-51": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.186599999666214,
+            "test_loss": 3.6454625129699707
+        },
+        "2025-10-06_18-10-07": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1866,
+            "test_loss": 0.0,
+            "macro_f1": 0.16268143467412735,
+            "ece": 0.07018327352106571
+        },
+        "2025-10-07_12-24-33": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.13860000669956207,
+            "test_loss": 5.414657115936279
+        },
+        "2025-10-07_12-25-50": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1386,
+            "test_loss": 0.0,
+            "macro_f1": 0.09518565555101591,
+            "ece": 0.27212776735425
+        }
+    },
+    "imagenet100_kaggle_V2_from_scratch_30pct": {
+        "2025-10-07_15-31-19": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.08820000290870667,
+            "test_loss": 5.9847259521484375
+        },
+        "2025-10-07_15-32-41": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0882,
+            "test_loss": 0.0,
+            "macro_f1": 0.0501947039087626,
+            "ece": 0.28540427537262447
+        },
+        "2025-10-07_23-43-38": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.15639999508857727,
+            "test_loss": 4.1254496574401855
+        },
+        "2025-10-07_23-44-54": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1564,
+            "test_loss": 0.0,
+            "macro_f1": 0.11872448620347903,
+            "ece": 0.0878823752015829
+        }
+    },
+    "imagenet100_kaggle_V2_from_scratch_50pct": {
+        "2025-10-08_07-04-16": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.10260000079870224,
+            "test_loss": 5.261608123779297
+        },
+        "2025-10-08_07-05-32": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1026,
+            "test_loss": 0.0,
+            "macro_f1": 0.05819475258403556,
+            "ece": 0.24959294646680355
+        }
+    },
+    "imagenet100_kaggle_lowres_from_scratch_10pct": {
+        "2025-10-11_15-29-01": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.02319999970495701,
+            "test_loss": 5.397398471832275
+        },
+        "2025-10-11_15-29-35": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0232,
+            "test_loss": 0.0,
+            "macro_f1": 0.006870129773855278,
+            "ece": 0.0361009307011962
+        },
+        "2025-10-11_15-55-29": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.02319999970495701,
+            "test_loss": 5.397398471832275
+        },
+        "2025-10-11_15-59-27": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.02319999970495701,
+            "test_loss": 5.397398471832275
+        },
+        "2025-10-11_16-09-54": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.014999999664723873,
+            "test_loss": 5.652318954467773
+        },
+        "2025-10-11_16-10-31": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.015,
+            "test_loss": 0.0,
+            "macro_f1": 0.004106513853109721,
+            "ece": 0.06881194498240947
+        },
+        "2025-10-11_16-21-02": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.009999999776482582,
+            "test_loss": 5.205785751342773
+        },
+        "2025-10-11_16-21-44": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.01,
+            "test_loss": 0.0,
+            "macro_f1": 0.00019801980198019803,
+            "ece": 0.04004984128922224
+        }
+    },
+    "imagenet100_kaggle_lowres_from_scratch_20pct": {
+        "2025-10-11_15-46-56": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.030799999833106995,
+            "test_loss": 6.2898406982421875
+        },
+        "2025-10-11_15-47-37": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0308,
+            "test_loss": 0.0,
+            "macro_f1": 0.0072682167064862,
+            "ece": 0.11148249885737896
+        },
+        "2025-10-11_16-40-57": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.033799998462200165,
+            "test_loss": 6.57322883605957
+        },
+        "2025-10-11_16-41-31": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0338,
+            "test_loss": 0.0,
+            "macro_f1": 0.00881503240342244,
+            "ece": 0.11836464706808328
+        }
+    },
+    "imagenet100_kaggle_lowres_from_scratch_30pct": {
+        "2025-10-11_17-14-45": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.058800000697374344,
+            "test_loss": 6.884382247924805
+        },
+        "2025-10-11_17-15-18": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0588,
+            "test_loss": 0.0,
+            "macro_f1": 0.026891730922461995,
+            "ece": 0.23253735712468626
+        }
+    },
+    "imagenet100_kaggle_lowres_from_scratch_50pct": {
+        "2025-10-11_17-56-57": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.061000000685453415,
+            "test_loss": 7.540612697601318
+        },
+        "2025-10-11_17-57-30": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.061,
+            "test_loss": 0.0,
+            "macro_f1": 0.022906988646236623,
+            "ece": 0.37505236967653044
+        }
+    },
+    "imagenet100_kaggle_lowres_from_scratch_100pct": {
+        "2025-10-11_19-17-03": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.035999998450279236,
+            "test_loss": 9.300378799438477
+        },
+        "2025-10-11_19-17-36": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.036,
+            "test_loss": 0.0,
+            "macro_f1": 0.011835826276306964,
+            "ece": 0.5787139501273633
+        }
+    },
+    "imagenet100_kaggle_V3_64px_from_scratch_10pct": {
+        "2025-10-12_08-02-59": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.018799999728798866,
+            "test_loss": 5.892943382263184
+        },
+        "2025-10-12_08-03-35": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0188,
+            "test_loss": 0.0,
+            "macro_f1": 0.003303866756471992,
+            "ece": 0.24657683226317165
+        },
+        "2025-10-12_12-52-45": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1785999983549118,
+            "test_loss": 3.7605557441711426
+        },
+        "2025-10-12_12-53-21": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1786,
+            "test_loss": 0.0,
+            "macro_f1": 0.1452791782694119,
+            "ece": 0.2417872614577412
+        }
+    },
+    "imagenet100_kaggle_V3_64px_from_scratch_20pct": {
+        "2025-10-12_08-18-14": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.021800000220537186,
+            "test_loss": 6.987584590911865
+        },
+        "2025-10-12_08-18-51": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0218,
+            "test_loss": 0.0,
+            "macro_f1": 0.007949183312101472,
+            "ece": 0.3962196589022875
+        },
+        "2025-10-12_13-34-48": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.17659999430179596,
+            "test_loss": 4.673723220825195
+        },
+        "2025-10-12_13-35-24": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1766,
+            "test_loss": 0.0,
+            "macro_f1": 0.13416221824874713,
+            "ece": 0.3564882284849882
+        }
+    },
+    "imagenet100_kaggle_V3_64px_from_scratch_30pct": {
+        "2025-10-12_08-39-03": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.022600000724196434,
+            "test_loss": 7.2062764167785645
+        },
+        "2025-10-12_08-39-39": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0226,
+            "test_loss": 0.0,
+            "macro_f1": 0.002828655720645283,
+            "ece": 0.3602777050837874
+        },
+        "2025-10-12_14-40-01": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1459999978542328,
+            "test_loss": 5.419565677642822
+        },
+        "2025-10-12_14-40-39": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.146,
+            "test_loss": 0.0,
+            "macro_f1": 0.10688922233603611,
+            "ece": 0.47070949344635005
+        }
+    },
+    "imagenet100_kaggle_V3_64px_from_scratch_50pct": {
+        "2025-10-12_09-11-19": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.020400000736117363,
+            "test_loss": 8.376749992370605
+        },
+        "2025-10-12_09-11-55": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0204,
+            "test_loss": 0.0,
+            "macro_f1": 0.003879727693966527,
+            "ece": 0.4592970637619495
+        },
+        "2025-10-12_15-53-50": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.10559999942779541,
+            "test_loss": 6.404565334320068
+        },
+        "2025-10-12_15-54-26": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.1056,
+            "test_loss": 0.0,
+            "macro_f1": 0.06384137064647082,
+            "ece": 0.45850584961175916
+        }
+    },
+    "imagenet100_kaggle_V3_64px_from_scratch_100pct": {
+        "2025-10-12_10-12-21": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.02199999988079071,
+            "test_loss": 8.903802871704102
+        },
+        "2025-10-12_10-12-57": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.022,
+            "test_loss": 0.0,
+            "macro_f1": 0.0028250896665463075,
+            "ece": 0.500472171264887
+        },
+        "2025-10-12_17-07-37": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.01720000058412552,
+            "test_loss": 8.53031063079834
+        },
+        "2025-10-12_17-08-14": {
+            "dataset": "full_loader",
+            "test_accuracy": 0.0172,
+            "test_loss": 0.0,
+            "macro_f1": 0.005538234488144956,
+            "ece": 0.682488975226879
+        }
+    },
+    "imagenet100_kaggle_V4_112px_from_scratch_10pct": {
+        "2025-10-12_19-33-35": {
+            "dataset": "_loader",
+            "test_accuracy": 0.2160000056028366,
+            "test_loss": 3.6508536338806152
+        },
+        "2025-10-12_19-34-12": {
+            "dataset": "_loader",
+            "test_accuracy": 0.216,
+            "test_loss": 0.0,
+            "macro_f1": 0.18857957963868346,
+            "ece": 0.23672456051707266
+        },
+        "2025-10-12_21-02-02": {
+            "dataset": "_loader",
+            "test_accuracy": 0.18799999356269836,
+            "test_loss": 3.9334914684295654
+        },
+        "2025-10-12_21-02-41": {
+            "dataset": "_loader",
+            "test_accuracy": 0.188,
+            "test_loss": 0.0,
+            "macro_f1": 0.17033566293399105,
+            "ece": 0.2750031086787581
+        }
+    },
+    "imagenet100_kaggle_V4_112px_from_scratch_20pct": {
+        "2025-10-12_20-19-05": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1703999936580658,
+            "test_loss": 5.148930549621582
+        },
+        "2025-10-12_20-19-42": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1704,
+            "test_loss": 0.0,
+            "macro_f1": 0.13105698163775334,
+            "ece": 0.38243133133202784
+        },
+        "2025-10-12_21-54-36": {
+            "dataset": "_loader",
+            "test_accuracy": 0.19679999351501465,
+            "test_loss": 4.724326133728027
+        },
+        "2025-10-12_21-55-15": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1968,
+            "test_loss": 0.0,
+            "macro_f1": 0.15250451166074114,
+            "ece": 0.3611379498720169
+        }
+    },
+    "imagenet100_kaggle_V4_112px_from_scratch_30pct": {
+        "2025-10-13_09-27-02": {
+            "dataset": "_loader",
+            "test_accuracy": 0.05380000174045563,
+            "test_loss": 6.011791229248047
+        },
+        "2025-10-13_09-27-41": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0538,
+            "test_loss": 0.0,
+            "macro_f1": 0.03060932089673301,
+            "ece": 0.3443707364082336
+        }
+    },
+    "imagenet100_kaggle_V4_112px_from_scratch_50pct": {
+        "2025-10-13_10-28-36": {
+            "dataset": "_loader",
+            "test_accuracy": 0.07580000162124634,
+            "test_loss": 6.568016529083252
+        },
+        "2025-10-13_10-29-11": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0758,
+            "test_loss": 0.0,
+            "macro_f1": 0.04603624726589313,
+            "ece": 0.5072613585203886
+        }
+    },
+    "imagenet100_kaggle_V5_112px_from_scratch_10pct": {
+        "2025-10-13_17-16-56": {
+            "dataset": "_loader",
+            "test_accuracy": 0.04259999841451645,
+            "test_loss": 4.406277179718018
+        },
+        "2025-10-13_17-17-38": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0426,
+            "test_loss": 0.0,
+            "macro_f1": 0.024840989516509177,
+            "ece": 0.03571617093421519
+        },
+        "2025-10-13_18-01-20": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0966000035405159,
+            "test_loss": 4.073783874511719
+        },
+        "2025-10-13_18-02-00": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0966,
+            "test_loss": 0.0,
+            "macro_f1": 0.0752182269404479,
+            "ece": 0.013714686360955238
+        }
+    },
+    "imagenet100_kaggle_V5_112px_from_scratch_20pct": {
+        "2025-10-13_18-13-32": {
+            "dataset": "_loader",
+            "test_accuracy": 0.04659999907016754,
+            "test_loss": 5.655791282653809
+        },
+        "2025-10-13_18-14-25": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0466,
+            "test_loss": 0.0,
+            "macro_f1": 0.021375269907745006,
+            "ece": 0.1433220044478774
+        },
+        "2025-10-13_18-41-23": {
+            "dataset": "_loader",
+            "test_accuracy": 0.03840000182390213,
+            "test_loss": 5.820098876953125
+        },
+        "2025-10-13_18-41-47": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0384,
+            "test_loss": 0.0,
+            "macro_f1": 0.013370752164459218,
+            "ece": 0.11798629164993764
+        }
+    },
+    "imagenet100_kaggle_V5_112px_from_scratch_30pct": {
+        "2025-10-13_19-00-41": {
+            "dataset": "_loader",
+            "test_accuracy": 0.03920000046491623,
+            "test_loss": 6.131709575653076
+        },
+        "2025-10-13_19-01-04": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0392,
+            "test_loss": 0.0,
+            "macro_f1": 0.015757908843070326,
+            "ece": 0.14005092575103048
+        }
+    },
+    "imagenet100_kaggle_V5_112px_from_scratch_50pct": {
+        "2025-10-13_19-24-36": {
+            "dataset": "_loader",
+            "test_accuracy": 0.01979999989271164,
+            "test_loss": 6.828477382659912
+        },
+        "2025-10-13_19-24-59": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0198,
+            "test_loss": 0.0,
+            "macro_f1": 0.0036978224542741096,
+            "ece": 0.30136834369897847
+        }
+    },
+    "imagenet100_kaggle_V5_112px_from_scratch_100pct": {
+        "2025-10-13_19-58-04": {
+            "dataset": "_loader",
+            "test_accuracy": 0.009999999776482582,
+            "test_loss": 8.460533142089844
+        },
+        "2025-10-13_19-58-28": {
+            "dataset": "_loader",
+            "test_accuracy": 0.01,
+            "test_loss": 0.0,
+            "macro_f1": 0.000396,
+            "ece": 0.49755714710354815
+        }
+    },
+    "imagenet100_kaggle_V10_168px_from_scratch_50pct": {
+        "2025-10-14_00-35-14": {
+            "dataset": "_loader",
+            "test_accuracy": 0.009999999776482582,
+            "test_loss": 4.771449089050293
+        },
+        "2025-10-14_00-35-59": {
+            "dataset": "_loader",
+            "test_accuracy": 0.01,
+            "test_loss": 0.0
+        }
+    }
+}
