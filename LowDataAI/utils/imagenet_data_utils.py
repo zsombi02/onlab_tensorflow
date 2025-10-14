@@ -16,7 +16,7 @@ def _standard_preprocess(image, label, image_size):
     return image, label
 
 def build_ds_from_images(ds, image_size, batch_size, shuffle=True,
-                         shuffle_buffer=8192, augment=False):
+                         shuffle_buffer=16384, augment=False):
     # 1. Előfeldolgozás minden képen (map)
     ds = ds.map(lambda x, y: _standard_preprocess(x, y, image_size), num_parallel_calls=AUTOTUNE)
 
@@ -32,9 +32,10 @@ def build_ds_from_images(ds, image_size, batch_size, shuffle=True,
         # Készítünk egy mini-modellt csak az augmentációhoz
         augmentation_layers = tf.keras.Sequential([
             tf.keras.layers.RandomFlip("horizontal"),
-            tf.keras.layers.RandomRotation(0.15),  # +/- 10% forgatás
-            tf.keras.layers.RandomZoom(0.15),      # +/- 10% zoom
-            tf.keras.layers.RandomContrast(0.25), # Kicsit erősebb kontraszt
+            tf.keras.layers.RandomRotation(0.05),
+            tf.keras.layers.RandomZoom(0.1),
+            tf.keras.layers.RandomContrast(0.40),
+            tf.keras.layers.RandomTranslation(height_factor=0.15, width_factor=0.15)
         ], name="augmentation_pipeline")
 
         # Alkalmazzuk ezt a mini-modellt a batchelt képekre

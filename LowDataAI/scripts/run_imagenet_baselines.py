@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 
 from models.DenseImagenetCNN import DenseImagenetCNN
-from models.Simpler_Imaganet_V5 import SimpleImagenetCNN_V5
+from models.Imagenet_50_CNN import SimpleImagenetCNN_V5
 from models.simple_imagenet_cnn import SimpleImagenetCNN
 from scripts.training_pipeline import TrainingPipeline
 from scripts.validation_pipeline import ValidationPipeline
@@ -23,7 +23,7 @@ def run_series(
     # Callbacks
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss", mode="min",
-        patience=7, min_delta=5e-4, restore_best_weights=True
+        patience=12, min_delta=1e-3, restore_best_weights=True
     )
     reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
         monitor="val_loss", mode="min",
@@ -42,7 +42,7 @@ def run_series(
 
     elif dataset == "imnet50_kaggle":
         # input_shape = (224, 224, 3)
-        input_shape = (112, 112, 3)
+        input_shape = (96, 96, 3)
         num_classes = 50
         base_name = "imagenet50_kaggle"
 

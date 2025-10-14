@@ -619,5 +619,29 @@
             "test_accuracy": 0.01,
             "test_loss": 0.0
         }
+    },
+    "imagenet50_kaggle_V1_112px_from_scratch_50pct": {
+        "2025-10-14_15-35-33": {
+            "dataset": "_loader",
+            "test_accuracy": 0.09279999881982803,
+            "test_loss": 3.4608969688415527
+        },
+        "2025-10-14_15-35-48": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0928,
+            "test_loss": 0.0
+        }
+    },
+    "imagenet50_kaggle_V1_112px_from_scratch_100pct": {
+        "2025-10-14_17-19-03": {
+            "dataset": "_loader",
+            "test_accuracy": 0.02879999950528145,
+            "test_loss": 4.021045207977295
+        },
+        "2025-10-14_17-19-19": {
+            "dataset": "_loader",
+            "test_accuracy": 0.0288,
+            "test_loss": 0.0
+        }
     }
 }
