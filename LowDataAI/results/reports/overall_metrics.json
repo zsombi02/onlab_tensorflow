@@ -630,6 +630,16 @@
             "dataset": "_loader",
             "test_accuracy": 0.0928,
             "test_loss": 0.0
+        },
+        "2025-10-14_22-33-16": {
+            "dataset": "_loader",
+            "test_accuracy": 0.12880000472068787,
+            "test_loss": 2.959346294403076
+        },
+        "2025-10-14_22-33-23": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1288,
+            "test_loss": 0.0
         }
     },
     "imagenet50_kaggle_V1_112px_from_scratch_100pct": {
@@ -641,6 +651,52 @@
         "2025-10-14_17-19-19": {
             "dataset": "_loader",
             "test_accuracy": 0.0288,
+            "test_loss": 0.0
+        },
+        "2025-10-15_02-09-32": {
+            "dataset": "_loader",
+            "test_accuracy": 0.13040000200271606,
+            "test_loss": 3.246263027191162
+        },
+        "2025-10-15_02-09-39": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1304,
+            "test_loss": 0.0
+        }
+    },
+    "imagenet50_kaggle_V1_112px_from_scratch_25pct": {
+        "2025-10-14_21-11-36": {
+            "dataset": "_loader",
+            "test_accuracy": 0.11680000275373459,
+            "test_loss": 3.0464136600494385
+        },
+        "2025-10-14_21-11-42": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1168,
+            "test_loss": 0.0
+        }
+    },
+    "imagenet25_kaggle_V1_112px_from_scratch_50pct": {
+        "2025-10-15_10-15-49": {
+            "dataset": "_loader",
+            "test_accuracy": 0.12080000340938568,
+            "test_loss": 3.009819984436035
+        },
+        "2025-10-15_10-15-57": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1208,
+            "test_loss": 0.0
+        }
+    },
+    "imagenet25_kaggle_V1_112px_from_scratch_100pct": {
+        "2025-10-15_12-09-57": {
+            "dataset": "_loader",
+            "test_accuracy": 0.13920000195503235,
+            "test_loss": 3.113095998764038
+        },
+        "2025-10-15_12-10-05": {
+            "dataset": "_loader",
+            "test_accuracy": 0.1392,
             "test_loss": 0.0
         }
     }

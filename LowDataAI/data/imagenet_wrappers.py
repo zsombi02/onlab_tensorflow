@@ -1,5 +1,6 @@
 # data/imagenet_wrappers.py
-from data.imagenet import load_imagenet100_kaggle_budget, load_imagenet50_from_imagenet100
+from data.imagenet import load_imagenet100_kaggle_budget, load_imagenet50_from_imagenet100, \
+    load_imagenet25_from_imagenet100
 
 
 # def tiny_full(batch_size=64, image_size=(64,64)):
@@ -27,6 +28,13 @@ def imnet100_kaggle_budget(pct, batch_size=64, image_size=(224,224), seed=42):
 def imnet50_from_100_budget(pct, batch_size=64, image_size=(224,224), seed=42):
 
     train_sub, val_ds = load_imagenet50_from_imagenet100(
+        pct=pct, batch_size=batch_size, image_size=image_size, seed=seed
+    )
+    return train_sub, val_ds
+
+def imnet25_from_100_budget(pct, batch_size=64, image_size=(224,224), seed=42):
+
+    train_sub, val_ds = load_imagenet25_from_imagenet100(
         pct=pct, batch_size=batch_size, image_size=image_size, seed=seed
     )
     return train_sub, val_ds

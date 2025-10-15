@@ -3,6 +3,7 @@ import os
 
 import tensorflow as tf
 
+from data.imagenet_wrappers import imnet25_from_100_budget
 from models.DenseImagenetCNN import DenseImagenetCNN
 from models.Imagenet_50_CNN import SimpleImagenetCNN_V5
 from models.simple_imagenet_cnn import SimpleImagenetCNN
@@ -45,6 +46,12 @@ def run_series(
         input_shape = (96, 96, 3)
         num_classes = 50
         base_name = "imagenet50_kaggle"
+
+    elif dataset == "imnet25_kaggle":
+        # input_shape = (224, 224, 3)
+        input_shape = (112, 112, 3)
+        num_classes = 25
+        base_name = "imagenet25_kaggle"
 
     else:
         input_shape = (96, 96, 3);
@@ -94,6 +101,19 @@ def run_series(
 
             return _loader
 
+    elif dataset == "imnet25_kaggle":
+
+        def full_loader(**_):
+            from data.imagenet_wrappers import imnet50_from_100_budget
+            return imnet25_from_100_budget(batch_size=bs, image_size=isize)
+
+        def budget_loader(p):
+            def _loader(**_):
+                from data.imagenet_wrappers import imnet50_from_100_budget
+                return imnet25_from_100_budget(p, batch_size=bs, image_size=isize, seed=seed)
+
+            return _loader
+
     # Label-budget futások
     for p in budgets:
         print("Budget:", p)
@@ -123,6 +143,6 @@ def run_series(
 
 if __name__ == "__main__":
     # Tiny-ImageNet sorozat:
-    run_series(dataset="imnet50_kaggle", budgets=(0.50, 1.0), epochs=50, batch_size=48)
+    run_series(dataset="imnet25_kaggle", budgets=(1.0, 0.50), epochs=50, batch_size=48)
     # run_series(dataset="tiny", budgets=(0.50, 0.6), epochs=50, batch_size=64)
 
